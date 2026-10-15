@@ -22,6 +22,7 @@
   </style>
 </head>
 <body class="min-h-screen pb-20">
+  <!-- 상단 고정 헤더 -->
   <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-3">
@@ -36,14 +37,21 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="installPwaBtn" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-medium transition">앱 설치 (PWA)</button>
-        <button onclick="syncNow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition">지금 새로고침</button>
-        <button onclick="toggleConfigModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition">실시간 연동 설정</button>
+        <button id="installPwaBtn" type="button" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+          앱 설치 (PWA)
+        </button>
+        <button id="btnSyncNow" type="button" onclick="window.syncNow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+          지금 새로고침
+        </button>
+        <button id="btnOpenConfig" type="button" onclick="window.openConfigModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+          실시간 연동 설정
+        </button>
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 pt-5 space-y-6">
+    <!-- 핵심 KPI 요약 카드 (6개) -->
     <section class="grid grid-cols-2 lg:grid-cols-6 gap-3">
       <div class="card p-4">
         <div class="text-xs text-slate-400">총 운용자산 (평가금액)</div>
@@ -77,14 +85,16 @@
       </div>
     </section>
 
+    <!-- 탭 네비게이션 -->
     <nav class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
-      <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">종합 대시보드 & 전략</button>
-      <button onclick="switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">보유종목 상세 (12종목)</button>
-      <button onclick="switchTab('tab-daily')" id="btn-tab-daily" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">일별 자산추이 & 스냅샷</button>
-      <button onclick="switchTab('tab-chart')" id="btn-tab-chart" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">종목 주가 & 52주 분석</button>
-      <button onclick="switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">대출 관리 & 실현손익 기록부</button>
+      <button type="button" onclick="window.switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종합 대시보드 & 전략</button>
+      <button type="button" onclick="window.switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">보유종목 상세 (12종목)</button>
+      <button type="button" onclick="window.switchTab('tab-daily')" id="btn-tab-daily" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">일별 자산추이 & 스냅샷</button>
+      <button type="button" onclick="window.switchTab('tab-chart')" id="btn-tab-chart" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종목 주가 & 52주 분석</button>
+      <button type="button" onclick="window.switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">대출 관리 & 실현손익 기록부</button>
     </nav>
 
+    <!-- [탭 1] 종합 대시보드 & 전략 -->
     <section id="tab-dashboard" class="space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="card p-4">
@@ -135,28 +145,28 @@
           <h3 class="text-sm font-bold text-white">핵심 전략 가이드 및 리밸런싱 체크리스트</h3>
           <div class="space-y-2 text-xs">
             <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk1" />
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk1" />
               <div>
                 <span class="font-semibold text-amber-300">[우선순위 1] 최고금리 차입금 상환</span>
                 <p class="text-slate-300 mt-0.5">카카오뱅크(연 6.60%, 잔액 3,000만원) 우선 상환 시 월 이자 164,950원 즉시 절감</p>
               </div>
             </label>
             <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk2" />
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk2" />
               <div>
                 <span class="font-semibold text-sky-300">[우선순위 2] 국내 반도체 집중도 완화</span>
                 <p class="text-slate-300 mt-0.5">삼성전자·SK하이닉스 평가액 8,406만원(전체의 46.5%) 과밀집 구간 분할 리밸런싱</p>
               </div>
             </label>
             <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk3" />
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk3" />
               <div>
                 <span class="font-semibold text-purple-300">[우선순위 3] 레버리지 ETF 변동성 통제</span>
                 <p class="text-slate-300 mt-0.5">레버리지 4종목(총 4,744만원, 비중 26.2%)의 음의 복리 리스크 방어 가이드라인 수립</p>
               </div>
             </label>
             <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk4" />
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk4" />
               <div>
                 <span class="font-semibold text-emerald-300">[우선순위 4] 누적 실현이익 버퍼 확보</span>
                 <p class="text-slate-300 mt-0.5">누적 실현수익 5,013만원 중 연간 이자 지출(532만원) 1~2년치 예비비 별도 분리</p>
@@ -167,8 +177,219 @@
       </div>
     </section>
 
+    <!-- [탭 2] 보유종목 상세 -->
     <section id="tab-holdings" class="hidden space-y-4">
       <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-slate-400">계좌/자산군 필터:</span>
-          <select id="filterAccount" onchange="renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+          <select id="filterAccount" onchange="window.renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+            <option value="ALL">전체 계좌 (계좌 1·2·3)</option>
+            <option value="계좌 1">계좌 1 (국내주식)</option>
+            <option value="계좌 2">계좌 2 (미국주식)</option>
+            <option value="계좌 3">계좌 3 (ETF)</option>
+          </select>
+          <select id="filterCategory" onchange="window.renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
+            <option value="ALL">전체 자산군</option>
+            <option value="국내주식">국내주식 (4)</option>
+            <option value="미국주식">미국주식 (6)</option>
+            <option value="ETF">ETF (2)</option>
+          </select>
+        </div>
+        <div class="text-xs text-slate-400">현재가 셀을 직접 수정하면 전체 KPI와 평가손익이 즉시 재계산됩니다.</div>
+      </div>
+
+      <div class="card overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
+            <tr>
+              <th class="py-3 px-3">계좌</th>
+              <th class="py-3 px-3">종목명 (티커)</th>
+              <th class="py-3 px-3">자산군</th>
+              <th class="py-3 px-3 text-right">보유수량</th>
+              <th class="py-3 px-3 text-right">매입단가(원)</th>
+              <th class="py-3 px-3 text-right">현재단가(원)</th>
+              <th class="py-3 px-3 text-right">총 매입원금</th>
+              <th class="py-3 px-3 text-right">총 평가금액</th>
+              <th class="py-3 px-3 text-right">평가손익</th>
+              <th class="py-3 px-3 text-right">수익률</th>
+              <th class="py-3 px-3">투자 메모</th>
+            </tr>
+          </thead>
+          <tbody id="holdingsTableBody" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- [탭 3] 일별 자산추이 -->
+    <section id="tab-daily" class="hidden space-y-4">
+      <div class="card p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 class="text-sm font-bold text-white">일별 총 운용자산 추이 (매일 07:00 스냅샷)</h2>
+            <p class="text-xs text-slate-400">최고 ₩180,774,576 / 최저 ₩176,200,000 (누적 15일 기록)</p>
+          </div>
+          <button type="button" onclick="window.addTodaySnapshot()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium cursor-pointer">+ 현재 평가액으로 오늘 스냅샷 추가</button>
+        </div>
+        <div class="h-64"><canvas id="dailyAssetChart"></canvas></div>
+      </div>
+
+      <div class="card overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
+            <tr>
+              <th class="py-2.5 px-3">일자</th>
+              <th class="py-2.5 px-3">기준시각</th>
+              <th class="py-2.5 px-3 text-right">총 운용자산 (원)</th>
+              <th class="py-2.5 px-3 text-right">전일 대비 변동액</th>
+              <th class="py-2.5 px-3 text-right">변동률</th>
+              <th class="py-2.5 px-3">비고 및 메모</th>
+            </tr>
+          </thead>
+          <tbody id="dailyTableBody" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- [탭 4] 종목 주가 & 52주 분석 -->
+    <section id="tab-chart" class="hidden space-y-4">
+      <div class="card p-4 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-white">엔비디아 (NASDAQ:NVDA) 1년 일별 주가 인터랙티브 차트 (USD)</h2>
+            <p class="text-xs text-slate-400">2025-10-15 ~ 2026-10-14 (기간 등락률 +23.06% | 52주 범위 $164.27 ~ $243.37 | 보유 59주 수익률 +1,643.3%)</p>
+          </div>
+        </div>
+        <div class="h-64"><canvas id="nvdaInteractiveChart"></canvas></div>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="text-sm font-bold text-white mb-3">12개 보유종목 52주 가격 위치 (최저가 대비 최고가 백분율)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
+              <tr>
+                <th class="py-2.5 px-3">종목명</th>
+                <th class="py-2.5 px-3">티커/코드</th>
+                <th class="py-2.5 px-3 text-right">현재 평가단가(원)</th>
+                <th class="py-2.5 px-3 text-right">52주 최저가</th>
+                <th class="py-2.5 px-3 text-right">52주 최고가</th>
+                <th class="py-2.5 px-3 w-56">52주 가격 위치</th>
+              </tr>
+            </thead>
+            <tbody id="range52TableBody" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- [탭 5] 대출 관리 & 실현손익 기록부 -->
+    <section id="tab-loans-pnl" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white">대출 기관별 차입금 & 이자 현황</h2>
+            <span class="text-xs text-amber-400">총 원금 ₩112,250,000 / 월 이자 ₩443,513</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">차입처</th>
+                  <th class="py-2.5 px-3 text-right">대출 원금(원)</th>
+                  <th class="py-2.5 px-3 text-right">연 이자율</th>
+                  <th class="py-2.5 px-3 text-right">월 예상 이자</th>
+                  <th class="py-2.5 px-3 text-right">연간 이자</th>
+                </tr>
+              </thead>
+              <tbody id="loansTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white">증권사별 누적 실현손익 기록부</h2>
+            <span class="text-xs text-emerald-400">총 실현수익 +₩50,132,866 (배당·이자 포함)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">증권사 / 계좌</th>
+                  <th class="py-2.5 px-3">조회 기간</th>
+                  <th class="py-2.5 px-3 text-right">주식 매매손익</th>
+                  <th class="py-2.5 px-3 text-right">총 실현수익</th>
+                  <th class="py-2.5 px-3">비고</th>
+                </tr>
+              </thead>
+              <tbody id="realizedTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 실시간 연동 설정 모달 -->
+  <div id="configModal" style="display: none;" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-600">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h3 class="text-base font-bold text-white">구글 스프레드시트 실시간 연동 설정</h3>
+        <button type="button" onclick="window.closeConfigModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 cursor-pointer">닫기 ✕</button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-300">
+        <p class="leading-relaxed">
+          구글 스프레드시트 상단 메뉴 <b>[확장 프로그램] &gt; [Apps Script]</b>에 <code>google_apps_script.js</code> 코드를 붙여넣고 <b>[배포] &gt; [새 배포] &gt; [웹 앱]</b>(액세스 권한: 모든 사용자)으로 배포한 뒤 생성된 URL을 아래에 입력해 주세요.
+        </p>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Google Apps Script 웹 앱 URL</label>
+          <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 outline-none" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">자동 갱신 주기 (초)</label>
+          <select id="pollIntervalInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="30">30초마다 실시간 동기화</option>
+            <option value="60" selected>60초(1분)마다 실시간 동기화</option>
+            <option value="300">5분마다 동기화</option>
+            <option value="0">수동 새로고침만 사용</option>
+          </select>
+        </div>
+        <div id="syncStatusMsg" class="text-xs text-sky-400 pt-1"></div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="window.resetDefaultData()" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">기본 스냅샷 복원</button>
+        <button type="button" onclick="window.saveSyncSettings()" class="text-xs px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold cursor-pointer">저장 및 즉시 연동</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 모달 제어 함수를 최우선으로 전역(window)에 등록
+    window.openConfigModal = function() {
+      var modal = document.getElementById('configModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      var urlInput = document.getElementById('apiUrlInput');
+      var pollInput = document.getElementById('pollIntervalInput');
+      if (urlInput) urlInput.value = localStorage.getItem('asset_pwa_api_url') || '';
+      if (pollInput) pollInput.value = localStorage.getItem('asset_pwa_poll_sec') || '60';
+      var msg = document.getElementById('syncStatusMsg');
+      if (msg) msg.textContent = '';
+    };
+
+    window.closeConfigModal = function() {
+      var modal = document.getElementById('configModal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    const INITIAL_STATE = {
+      holdings: [
+        { no: 1, account: "계좌 2", name: "엔비디아 (NVDA)", ticker: "NASDAQ:NVDA", category: "미국주식", qty: 59, buyPrice: 17074.6, curPrice: 297667, totalBuy: 1007400, totalEval: 17562371.32, pnl: 16554971.32, low52: "$164.27", high52: "$243.37", pos52: 72.1, memo: "매입 $12.75 / 현재 $238.19 (비중 8.38%)" },
+        { no: 3, account: "계좌 2", name: "TSMC ADR (TSM)", ticker: "NYSE:TSM", category: "미국주식", qty: 10, buyPrice: 220363, curPrice: 578387, totalBuy: 2203630, totalEval: 5783870, pnl: 3580240, low52: "$266.82", high52: "$487.47", pos52: 74.0, memo: "매입 $164.55 / 현재 $474.70 (비중 2.83%)" },
+        { no: 2, account: "계좌 2", name: "애플 (AAPL)", ticker: "NASDAQ:AAPL", category: "미국주식", qty: 24, buyPrice: 218435, curPrice: 461310, totalBuy: 5242430, totalEval: 11071448.44, pnl: 5829018.44, low52: "$243.42", high52: "$348.15", pos52: 95.0, memo: "매입 $163.11 / 현재 $335.77 (비중 4.80%)" },
+        { no: 4, account: "계좌 2", name: "알파벳 A (GOOGL)", ticker: "NASDAQ:GOOGL", category: "미국주식", qty: 14, buyPrice: 343126, curPrice: 467605, totalBuy: 4803760, totalEval: 6546470, pnl: 1742710, low52: "$244.15", high52: "$408.61", pos52: 62.9, memo: "매입 $256.22 / 현재 $345.74 (비중 2.89%)" },
+        { no: 5, account: "계좌 2", name: "AMD (AMD)", ticker: "NASDAQ:AMD", category: "미국주식", qty: 6, buyPrice: 606370, curPrice: 767801, totalBuy: 3638220, totalEval: 4606806, pnl: 968586, low52: "$188.22", high52: "$658.52", pos52: 81.4, memo: "매입 $452.79 / 현재 $637.78 (비중 2.28%)" },
+        { no: 6, account: "계좌 3", name: "TIGER 미국나스닥100레버리지(합성)", ticker: "KRX:418660", category: "ETF", qty: 720, buyPrice: 38878, curPrice: 38155, totalBuy: 27992200, totalEval: 27471600, pnl: -520600, low52: "₩30,010", high52: "₩53,900", pos52: 34.1, memo: "나스닥 2배 레버리지 (비중 13.49%)" },
+        { no: 9, account: "계좌 1", name: "삼성전자", ticker: "KRX:005930", category: "국내주식", qty: 202, buyPrice: 259258, curPrice: 210000, totalBuy: 52370100, totalEval: 42420000, pnl: -9950100, low52: "₩92,100", high52: "₩374,500", pos52: 41.7, memo: "국내 대형 반도체 (비중 24.14%)" },
+        { no: 7, account: "계좌 2", name: "인텔 (INTC)", ticker: "NASDAQ:INTC", category: "미국주식", qty: 28, buyPrice: 165108, curPrice: 131980, totalBuy: 4623030, totalEval: 3695440, pnl: -927590, low52: "$32.89", high52: "$142.34", pos52: 59.6, memo: "매입 $123.29 / 현재 $112.72 (비중 1.88%)" },
+        { no: 11, account: "계좌 1", name: "SK하이닉스", ticker: "KRX:000660", category: "국내주식", qty: 33, buyPrice: 1879190, curPrice: 1262000, totalBuy: 6201310
