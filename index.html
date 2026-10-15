@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="자산대시보드" />
+  <title>총 자산 현황 & 투자노트 실시간 대시보드 (PWA)</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 0.875rem; }
+    .tab-btn.active { background-color: #2563eb; color: #ffffff; font-weight: 600; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen pb-20">
+  <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <img src="./icon-192.png" onerror="this.style.display='none'" alt="아이콘" class="w-9 h-9 rounded-lg border border-slate-700" />
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            총 자산 현황 실시간 대시보드
+            <span id="syncBadge" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">실시간 준비됨</span>
+          </h1>
+          <p class="text-xs text-slate-400">최종 동기화: <span id="lastUpdatedText">2026-10-15 07:00:00 (기본 스냅샷)</span></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="installPwaBtn" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-medium transition">앱 설치 (PWA)</button>
+        <button onclick="syncNow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition">지금 새로고침</button>
+        <button onclick="toggleConfigModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition">실시간 연동 설정</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 pt-5 space-y-6">
+    <section class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">총 운용자산 (평가금액)</div>
+        <div id="kpiTotalAsset" class="text-lg sm:text-xl font-bold text-white mt-1">₩180,774,576</div>
+        <div id="kpiDailyDiff" class="text-xs text-emerald-400 mt-1">전일비 +₩324,576 (+0.18%)</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">순자산 (자기자본)</div>
+        <div id="kpiNetWorth" class="text-lg sm:text-xl font-bold text-sky-400 mt-1">₩68,524,576</div>
+        <div id="kpiEquityRatio" class="text-xs text-slate-300 mt-1">자기자본 비중 37.9% (권장 30%↑)</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">총 대출 부채 (타인자본)</div>
+        <div id="kpiTotalDebt" class="text-lg sm:text-xl font-bold text-amber-400 mt-1">₩112,250,000</div>
+        <div id="kpiInterestInfo" class="text-xs text-slate-300 mt-1">월 ₩443,513 / 연 ₩5,322,150</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">레버리지 (부채비율)</div>
+        <div id="kpiLeverage" class="text-lg sm:text-xl font-bold text-purple-400 mt-1">163.81%</div>
+        <div class="text-xs text-slate-300 mt-1">순자산 대비 연이자 부담 7.8%</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">미실현 평가손익</div>
+        <div id="kpiUnrealizedPnl" class="text-lg sm:text-xl font-bold text-rose-400 mt-1">-₩51,125,496</div>
+        <div id="kpiUnrealizedRate" class="text-xs text-rose-300 mt-1">원금 ₩231,899,970 대비 -22.05%</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">총 누적 손익 (실현+미실현)</div>
+        <div id="kpiNetCumulativePnl" class="text-lg sm:text-xl font-bold text-rose-400 mt-1">-₩992,630</div>
+        <div class="text-xs text-emerald-400 mt-1">누적 실현수익 +₩50,132,866 반영</div>
+      </div>
+    </section>
+
+    <nav class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+      <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">종합 대시보드 & 전략</button>
+      <button onclick="switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">보유종목 상세 (12종목)</button>
+      <button onclick="switchTab('tab-daily')" id="btn-tab-daily" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">일별 자산추이 & 스냅샷</button>
+      <button onclick="switchTab('tab-chart')" id="btn-tab-chart" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">종목 주가 & 52주 분석</button>
+      <button onclick="switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition">대출 관리 & 실현손익 기록부</button>
+    </nav>
+
+    <section id="tab-dashboard" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="card p-4">
+          <h2 class="text-sm font-semibold text-slate-200 mb-3">자본 조달 구조 (순자산 vs 타인자본)</h2>
+          <div class="h-56 flex items-center justify-center"><canvas id="capitalChart"></canvas></div>
+        </div>
+        <div class="card p-4">
+          <h2 class="text-sm font-semibold text-slate-200 mb-3">자산군별 포트폴리오 비중</h2>
+          <div class="h-56 flex items-center justify-center"><canvas id="categoryChart"></canvas></div>
+        </div>
+        <div class="card p-4">
+          <h2 class="text-sm font-semibold text-slate-200 mb-3">상위 5대 보유종목 평가금액 (원)</h2>
+          <div class="h-56 flex items-center justify-center"><canvas id="top5Chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card p-5 space-y-3">
+          <h3 class="text-sm font-bold text-white">리스크 집중도 모니터링</h3>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+              <div class="text-slate-400">1위 보유종목 집중도</div>
+              <div class="text-base font-bold text-white mt-1">23.5% (삼성전자)</div>
+              <div class="text-slate-400 mt-0.5">삼전+하이닉스 합산 46.5% (₩8,406만)</div>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+              <div class="text-slate-400">레버리지 상품 노출 비중</div>
+              <div class="text-base font-bold text-amber-400 mt-1">26.2% (4종목)</div>
+              <div class="text-slate-400 mt-0.5">합산 평가액 ₩4,744만 (음의 복리 유의)</div>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+              <div class="text-slate-400">순자산 대비 연이자 부담률</div>
+              <div class="text-base font-bold text-rose-400 mt-1">7.8% (연 ₩532만)</div>
+              <div class="text-slate-400 mt-0.5">월 고정 지출 ₩443,513</div>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+              <div class="text-slate-400">자기자본 안전마진</div>
+              <div class="text-base font-bold text-emerald-400 mt-1">37.9% 달성</div>
+              <div class="text-slate-400 mt-0.5">권장 가이드 30.0% 초과 유지 중</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-lg bg-blue-950/40 border border-blue-800/50 text-xs text-blue-200">
+            "현재 부채비율 163.8% 환경에서는 자산 증식보다 현금흐름과 이자 방어가 장기 수익률을 결정합니다."
+          </div>
+        </div>
+
+        <div class="card p-5 space-y-3">
+          <h3 class="text-sm font-bold text-white">핵심 전략 가이드 및 리밸런싱 체크리스트</h3>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk1" />
+              <div>
+                <span class="font-semibold text-amber-300">[우선순위 1] 최고금리 차입금 상환</span>
+                <p class="text-slate-300 mt-0.5">카카오뱅크(연 6.60%, 잔액 3,000만원) 우선 상환 시 월 이자 164,950원 즉시 절감</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk2" />
+              <div>
+                <span class="font-semibold text-sky-300">[우선순위 2] 국내 반도체 집중도 완화</span>
+                <p class="text-slate-300 mt-0.5">삼성전자·SK하이닉스 평가액 8,406만원(전체의 46.5%) 과밀집 구간 분할 리밸런싱</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk3" />
+              <div>
+                <span class="font-semibold text-purple-300">[우선순위 3] 레버리지 ETF 변동성 통제</span>
+                <p class="text-slate-300 mt-0.5">레버리지 4종목(총 4,744만원, 비중 26.2%)의 음의 복리 리스크 방어 가이드라인 수립</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="saveChecklist()" id="chk4" />
+              <div>
+                <span class="font-semibold text-emerald-300">[우선순위 4] 누적 실현이익 버퍼 확보</span>
+                <p class="text-slate-300 mt-0.5">누적 실현수익 5,013만원 중 연간 이자 지출(532만원) 1~2년치 예비비 별도 분리</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-holdings" class="hidden space-y-4">
+      <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-400">계좌/자산군 필터:</span>
+          <select id="filterAccount" onchange="renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
