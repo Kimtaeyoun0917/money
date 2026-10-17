@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="자산대시보드" />
   <title>총 자산 현황 & 투자노트 실시간 대시보드 (PWA)</title>
   <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon-192.png" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,9 +21,431 @@
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
   </style>
+
+  <!-- 핵심 함수를 최상단에서 즉시 선언하여 onclick 에러 원천 차단 -->
+  <script>
+    const INITIAL_STATE = {
+      holdings: [
+        { no: 1, account: "계좌 2", name: "엔비디아 (NVDA)", ticker: "NASDAQ:NVDA", category: "미국주식", qty: 59, buyPrice: 17074.6, curPrice: 297667, totalBuy: 1007400, totalEval: 17562371.32, pnl: 16554971.32, low52: "$164.27", high52: "$243.37", pos52: 72.1, memo: "매입 $12.75 / 현재 $238.19 (비중 8.38%)" },
+        { no: 3, account: "계좌 2", name: "TSMC ADR (TSM)", ticker: "NYSE:TSM", category: "미국주식", qty: 10, buyPrice: 220363, curPrice: 578387, totalBuy: 2203630, totalEval: 5783870, pnl: 3580240, low52: "$266.82", high52: "$487.47", pos52: 74.0, memo: "매입 $164.55 / 현재 $474.70 (비중 2.83%)" },
+        { no: 2, account: "계좌 2", name: "애플 (AAPL)", ticker: "NASDAQ:AAPL", category: "미국주식", qty: 24, buyPrice: 218435, curPrice: 461310, totalBuy: 5242430, totalEval: 11071448.44, pnl: 5829018.44, low52: "$243.42", high52: "$348.15", pos52: 95.0, memo: "매입 $163.11 / 현재 $335.77 (비중 4.80%)" },
+        { no: 4, account: "계좌 2", name: "알파벳 A (GOOGL)", ticker: "NASDAQ:GOOGL", category: "미국주식", qty: 14, buyPrice: 343126, curPrice: 467605, totalBuy: 4803760, totalEval: 6546470, pnl: 1742710, low52: "$244.15", high52: "$408.61", pos52: 62.9, memo: "매입 $256.22 / 현재 $345.74 (비중 2.89%)" },
+        { no: 5, account: "계좌 2", name: "AMD (AMD)", ticker: "NASDAQ:AMD", category: "미국주식", qty: 6, buyPrice: 606370, curPrice: 767801, totalBuy: 3638220, totalEval: 4606806, pnl: 968586, low52: "$188.22", high52: "$658.52", pos52: 81.4, memo: "매입 $452.79 / 현재 $637.78 (비중 2.28%)" },
+        { no: 6, account: "계좌 3", name: "TIGER 미국나스닥100레버리지(합성)", ticker: "KRX:418660", category: "ETF", qty: 720, buyPrice: 38878, curPrice: 38155, totalBuy: 27992200, totalEval: 27471600, pnl: -520600, low52: "₩30,010", high52: "₩53,900", pos52: 34.1, memo: "나스닥 2배 레버리지 (비중 13.49%)" },
+        { no: 9, account: "계좌 1", name: "삼성전자", ticker: "KRX:005930", category: "국내주식", qty: 202, buyPrice: 259258, curPrice: 210000, totalBuy: 52370100, totalEval: 42420000, pnl: -9950100, low52: "₩92,100", high52: "₩374,500", pos52: 41.7, memo: "국내 대형 반도체 (비중 24.14%)" },
+        { no: 7, account: "계좌 2", name: "인텔 (INTC)", ticker: "NASDAQ:INTC", category: "미국주식", qty: 28, buyPrice: 165108, curPrice: 131980, totalBuy: 4623030, totalEval: 3695440, pnl: -927590, low52: "$32.89", high52: "$142.34", pos52: 59.6, memo: "매입 $123.29 / 현재 $112.72 (비중 1.88%)" },
+        { no: 11, account: "계좌 1", name: "SK하이닉스", ticker: "KRX:000660", category: "국내주식", qty: 33, buyPrice: 1879190, curPrice: 1262000, totalBuy: 62013100, totalEval: 41646000, pnl: -20367100, low52: "₩407,000", high52: "₩2,987,000", pos52: 33.1, memo: "HBM 핵심 수혜주 (비중 25.14%)" },
+        { no: 8, account: "계좌 3", name: "TIGER 미국필라델피아반도체레버리지(합성)", ticker: "KRX:423920", category: "ETF", qty: 92, buyPrice: 155000, curPrice: 72480, totalBuy: 14260000, totalEval: 6668160, pnl: -7591840, low52: "₩33,285", high52: "₩173,800", pos52: 27.9, memo: "필라델피아 반도체 2배 (비중 3.91%)" },
+        { no: 12, account: "계좌 1", name: "KODEX 삼성전자단일종목레버리지", ticker: "KRX:0193W0", category: "국내주식", qty: 1327, buyPrice: 27031, curPrice: 7595, totalBuy: 35870100, totalEval: 10078565, pnl: -25791535, low52: "₩6,800", high52: "₩33,000", pos52: 3.0, memo: "삼성전자 단일 레버리지 (비중 7.51%)" },
+        { no: 10, account: "계좌 1", name: "KODEX SK하이닉스단일종목레버리지", ticker: "KRX:0193T0", category: "국내주식", qty: 610, buyPrice: 29305, curPrice: 5285, totalBuy: 17876000, totalEval: 3223850, pnl: -14652150, low52: "₩5,025", high52: "₩44,385", pos52: 0.7, memo: "하이닉스 단일 레버리지 (비중 2.75%)" }
+      ],
+      loans: [
+        { lender: "새마을금고1", principal: 38000000, rate: 0.045, monthly: 142500 },
+        { lender: "새마을금고2", principal: 14250000, rate: 0.043, monthly: 51062.5 },
+        { lender: "카카오뱅크", principal: 30000000, rate: 0.06598, monthly: 164950 },
+        { lender: "기타 차입금", principal: 30000000, rate: 0.034, monthly: 85000 }
+      ],
+      realizedPnl: [
+        { no: 1, account: "신한증권 국내주식", period: "2016.09.04 ~ 2026.10.04", tradePnl: 3023991, totalPnl: 3023991, note: "국내주식 누적 손익" },
+        { no: 2, account: "신한증권 해외주식", period: "2023.05.14 ~ 2026.10.04", tradePnl: 5280391, totalPnl: 5280391, note: "해외주식 누적 손익" },
+        { no: 3, account: "토스증권 기본계좌", period: "2021.04.15 ~ 2026.10.04", tradePnl: 45903446, totalPnl: 46004121, note: "배당금 85,087원 / 이자 15,588원 포함" },
+        { no: 4, account: "카카오증권 전체시장", period: "2026.01.01 ~ 2026.10.04", tradePnl: -4175637, totalPnl: -4175637, note: "전체시장 실현손실" }
+      ],
+      dailyTrend: [
+        { date: "2026-10-01", time: "07:00", totalAsset: 176200000, diff: 0, diffRate: "0.00%", note: "초기 기록 시작" },
+        { date: "2026-10-02", time: "07:00", totalAsset: 176850000, diff: 650000, diffRate: "+0.37%", note: "국내외 증시 반등" },
+        { date: "2026-10-03", time: "07:00", totalAsset: 176850000, diff: 0, diffRate: "0.00%", note: "개천절 국내 휴장" },
+        { date: "2026-10-04", time: "07:00", totalAsset: 177400000, diff: 550000, diffRate: "+0.31%", note: "미국 기술주 강세" },
+        { date: "2026-10-05", time: "07:00", totalAsset: 177150000, diff: -250000, diffRate: "-0.14%", note: "주말 환율 변동" },
+        { date: "2026-10-06", time: "07:00", totalAsset: 177900000, diff: 750000, diffRate: "+0.42%", note: "배당금 입금 및 재투자" },
+        { date: "2026-10-07", time: "07:00", totalAsset: 178500000, diff: 600000, diffRate: "+0.34%", note: "반도체 섹터 추가 상승" },
+        { date: "2026-10-08", time: "07:00", totalAsset: 178100000, diff: -400000, diffRate: "-0.22%", note: "단기 차익 실현 조정" },
+        { date: "2026-10-09", time: "07:00", totalAsset: 178100000, diff: 0, diffRate: "0.00%", note: "한글날 휴장" },
+        { date: "2026-10-10", time: "07:00", totalAsset: 179250000, diff: 1150000, diffRate: "+0.65%", note: "빅테크 호실적 전망" },
+        { date: "2026-10-11", time: "07:00", totalAsset: 179050000, diff: -200000, diffRate: "-0.11%", note: "주말 마감 기준" },
+        { date: "2026-10-12", time: "07:00", totalAsset: 179800000, diff: 750000, diffRate: "+0.42%", note: "글로벌 지수 동반 상승" },
+        { date: "2026-10-13", time: "07:00", totalAsset: 180200000, diff: 400000, diffRate: "+0.22%", note: "운용자산 1.8억원 돌파" },
+        { date: "2026-10-14", time: "07:00", totalAsset: 180450000, diff: 250000, diffRate: "+0.14%", note: "견고한 상승세 지속" },
+        { date: "2026-10-15", time: "07:00", totalAsset: 180774576, diff: 324576, diffRate: "+0.18%", note: "현재 실시간 총자산 스냅샷" }
+      ],
+      nvdaHistory: [
+        {"date":"2025-10-15","close":179.83},{"date":"2025-10-29","close":207.04},{"date":"2025-11-14","close":190.17},
+        {"date":"2025-11-28","close":177.00},{"date":"2025-12-17","close":170.94},{"date":"2025-12-31","close":186.50},
+        {"date":"2026-01-15","close":187.05},{"date":"2026-01-29","close":192.51},{"date":"2026-02-05","close":171.88},
+        {"date":"2026-02-25","close":195.56},{"date":"2026-03-11","close":186.03},{"date":"2026-03-30","close":165.17},
+        {"date":"2026-04-15","close":198.87},{"date":"2026-04-27","close":216.61},{"date":"2026-05-14","close":235.74},
+        {"date":"2026-06-01","close":224.36},{"date":"2026-06-26","close":192.53},{"date":"2026-07-15","close":212.50},
+        {"date":"2026-07-29","close":190.01},{"date":"2026-08-13","close":225.30},{"date":"2026-08-27","close":227.98},
+        {"date":"2026-09-04","close":230.36},{"date":"2026-09-22","close":228.87},{"date":"2026-10-06","close":239.24},
+        {"date":"2026-10-14","close":221.30}
+      ]
+    };
+
+    let state = JSON.parse(localStorage.getItem('asset_pwa_state_v2') || 'null') || JSON.parse(JSON.stringify(INITIAL_STATE));
+    let charts = {};
+    let pollTimer = null;
+
+    const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
+    const fmtNum = (n) => Math.round(Number(n) || 0).toLocaleString('ko-KR');
+
+    window.openConfigModal = function() {
+      const modal = document.getElementById('configModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      document.getElementById('apiUrlInput').value = localStorage.getItem('asset_pwa_api_url') || '';
+      document.getElementById('pollIntervalInput').value = localStorage.getItem('asset_pwa_poll_sec') || '60';
+    };
+
+    window.closeConfigModal = function() {
+      const modal = document.getElementById('configModal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.toggleConfigModal = window.openConfigModal;
+
+    window.switchTab = function(tabId) {
+      ['tab-dashboard', 'tab-holdings', 'tab-daily', 'tab-chart', 'tab-loans-pnl'].forEach(id => {
+        const sec = document.getElementById(id);
+        const btn = document.getElementById('btn-' + id);
+        if (sec) sec.classList.toggle('hidden', id !== tabId);
+        if (btn) btn.classList.toggle('active', id === tabId);
+      });
+    };
+
+    window.recalculateAndRender = function() {
+      const totalBuy = state.holdings.reduce((s, h) => s + (Number(h.totalBuy) || 0), 0);
+      const totalEval = state.holdings.reduce((s, h) => s + (Number(h.totalEval) || 0), 0);
+      const unrealizedPnl = totalEval - totalBuy;
+      const unrealizedRate = totalBuy > 0 ? (unrealizedPnl / totalBuy) * 100 : 0;
+
+      const totalDebt = state.loans.reduce((s, l) => s + (Number(l.principal) || 0), 0);
+      const monthlyInterest = state.loans.reduce((s, l) => s + (Number(l.monthly) || 0), 0);
+      const annualInterest = monthlyInterest * 12;
+      const netWorth = totalEval - totalDebt;
+      const equityRatio = totalEval > 0 ? (netWorth / totalEval) * 100 : 0;
+      const leverageRatio = netWorth > 0 ? (totalDebt / netWorth) * 100 : 0;
+
+      const totalRealized = state.realizedPnl.reduce((s, r) => s + (Number(r.totalPnl) || 0), 0);
+      const cumulativeNetPnl = unrealizedPnl + totalRealized;
+
+      document.getElementById('kpiTotalAsset').textContent = fmtKRW(totalEval);
+      document.getElementById('kpiNetWorth').textContent = fmtKRW(netWorth);
+      document.getElementById('kpiEquityRatio').textContent = '자기자본 비중 ' + equityRatio.toFixed(1) + '% (권장 30%↑)';
+      document.getElementById('kpiTotalDebt').textContent = fmtKRW(totalDebt);
+      document.getElementById('kpiInterestInfo').textContent = '월 ' + fmtKRW(monthlyInterest) + ' / 연 ' + fmtKRW(annualInterest);
+      document.getElementById('kpiLeverage').textContent = leverageRatio.toFixed(2) + '%';
+
+      const uEl = document.getElementById('kpiUnrealizedPnl');
+      uEl.textContent = (unrealizedPnl >= 0 ? '+' : '') + fmtKRW(unrealizedPnl);
+      uEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      document.getElementById('kpiUnrealizedRate').textContent = '원금 ' + fmtKRW(totalBuy) + ' 대비 ' + unrealizedRate.toFixed(2) + '%';
+
+      const cEl = document.getElementById('kpiNetCumulativePnl');
+      cEl.textContent = (cumulativeNetPnl >= 0 ? '+' : '') + fmtKRW(cumulativeNetPnl);
+      cEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (cumulativeNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+
+      window.renderHoldings();
+      window.renderDailyTrend();
+      window.renderRange52();
+      window.renderLoansAndRealized();
+      window.renderCharts(netWorth, totalDebt);
+      localStorage.setItem('asset_pwa_state_v2', JSON.stringify(state));
+    };
+
+    window.updateHoldingPrice = function(index, newPriceStr) {
+      const val = parseFloat(newPriceStr);
+      if (isNaN(val) || val < 0) return;
+      const item = state.holdings[index];
+      item.curPrice = val;
+      item.totalEval = item.qty * val;
+      item.pnl = item.totalEval - item.totalBuy;
+      window.recalculateAndRender();
+    };
+
+    window.renderHoldings = function() {
+      const accFilter = document.getElementById('filterAccount').value;
+      const catFilter = document.getElementById('filterCategory').value;
+      const tbody = document.getElementById('holdingsTableBody');
+      tbody.innerHTML = '';
+
+      state.holdings.forEach((h, idx) => {
+        if (accFilter !== 'ALL' && h.account !== accFilter) return;
+        if (catFilter !== 'ALL' && h.category !== catFilter) return;
+        const rate = h.totalBuy > 0 ? ((h.totalEval - h.totalBuy) / h.totalBuy) * 100 : 0;
+        const pnlColor = h.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition';
+        tr.innerHTML =
+          '<td class="py-2.5 px-3 text-slate-300">' + h.account + '</td>' +
+          '<td class="py-2.5 px-3 font-medium text-white">' + h.name + '</td>' +
+          '<td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">' + h.category + '</span></td>' +
+          '<td class="py-2.5 px-3 text-right">' + fmtNum(h.qty) + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtNum(h.buyPrice) + '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+            '<input type="number" value="' + Math.round(h.curPrice) + '" onchange="window.updateHoldingPrice(' + idx + ', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-right text-sky-300 font-semibold focus:border-blue-500 outline-none" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtKRW(h.totalBuy) + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(h.totalEval) + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold ' + pnlColor + '">' + (h.pnl >= 0 ? '+' : '') + fmtKRW(h.pnl) + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold ' + pnlColor + '">' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '%</td>' +
+          '<td class="py-2.5 px-3 text-slate-400">' + (h.memo || '') + '</td>';
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.renderDailyTrend = function() {
+      const tbody = document.getElementById('dailyTableBody');
+      tbody.innerHTML = '';
+      [...state.dailyTrend].reverse().forEach(d => {
+        const col = d.diff > 0 ? 'text-emerald-400' : (d.diff < 0 ? 'text-rose-400' : 'text-slate-400');
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50';
+        tr.innerHTML =
+          '<td class="py-2.5 px-3 font-medium text-white">' + d.date + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-400">' + d.time + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(d.totalAsset) + '</td>' +
+          '<td class="py-2.5 px-3 text-right ' + col + '">' + (d.diff > 0 ? '+' : '') + fmtKRW(d.diff) + '</td>' +
+          '<td class="py-2.5 px-3 text-right ' + col + '">' + d.diffRate + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-300">' + d.note + '</td>';
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.addTodaySnapshot = function() {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 5);
+      const totalEval = state.holdings.reduce((s, h) => s + h.totalEval, 0);
+      const prev = state.dailyTrend[state.dailyTrend.length - 1] || { totalAsset: totalEval };
+      const diff = totalEval - prev.totalAsset;
+      const diffRate = prev.totalAsset > 0 ? ((diff / prev.totalAsset) * 100).toFixed(2) + '%' : '0.00%';
+      state.dailyTrend.push({
+        date: dateStr,
+        time: timeStr,
+        totalAsset: totalEval,
+        diff: diff,
+        diffRate: (diff >= 0 ? '+' : '') + diffRate,
+        note: '웹 대시보드 수동 스냅샷'
+      });
+      window.recalculateAndRender();
+    };
+
+    window.renderRange52 = function() {
+      const tbody = document.getElementById('range52TableBody');
+      tbody.innerHTML = '';
+      state.holdings.forEach(h => {
+        const pct = Math.max(0, Math.min(100, h.pos52 || 50));
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50';
+        tr.innerHTML =
+          '<td class="py-2.5 px-3 font-medium text-white">' + h.name + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-400">' + (h.ticker || '-') + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(h.curPrice) + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + (h.low52 || '-') + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + (h.high52 || '-') + '</td>' +
+          '<td class="py-2.5 px-3">' +
+            '<div class="flex items-center gap-2">' +
+              '<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">' +
+                '<div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-2 rounded-full" style="width:' + pct + '%"></div>' +
+              '</div>' +
+              '<span class="text-xs font-semibold text-sky-400 w-12 text-right">' + pct.toFixed(1) + '%</span>' +
+            '</div>' +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.renderLoansAndRealized = function() {
+      const lBody = document.getElementById('loansTableBody');
+      lBody.innerHTML = '';
+      state.loans.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="py-2.5 px-3 font-medium text-white">' + l.lender + '</td>' +
+          '<td class="py-2.5 px-3 text-right">' + fmtKRW(l.principal) + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-amber-400">' + (l.rate * 100).toFixed(2) + '%</td>' +
+          '<td class="py-2.5 px-3 text-right">' + fmtKRW(l.monthly) + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtKRW(l.monthly * 12) + '</td>';
+        lBody.appendChild(tr);
+      });
+
+      const rBody = document.getElementById('realizedTableBody');
+      rBody.innerHTML = '';
+      state.realizedPnl.forEach(r => {
+        const col = r.totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="py-2.5 px-3 font-medium text-white">' + r.account + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-400">' + r.period + '</td>' +
+          '<td class="py-2.5 px-3 text-right ' + col + '">' + (r.tradePnl >= 0 ? '+' : '') + fmtKRW(r.tradePnl) + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold ' + col + '">' + (r.totalPnl >= 0 ? '+' : '') + fmtKRW(r.totalPnl) + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-400">' + r.note + '</td>';
+        rBody.appendChild(tr);
+      });
+    };
+
+    window.renderCharts = function(netWorth, totalDebt) {
+      if (typeof Chart === 'undefined') return;
+
+      const capCtx = document.getElementById('capitalChart').getContext('2d');
+      if (charts.capital) charts.capital.destroy();
+      charts.capital = new Chart(capCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['순자산 (자기자본)', '대출 부채 (타인자본)'],
+          datasets: [{ data: [Math.max(0, netWorth), totalDebt], backgroundColor: ['#38bdf8', '#f59e0b'], borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } }, maintainAspectRatio: false }
+      });
+
+      const catSums = { '국내주식': 0, '미국주식': 0, 'ETF': 0 };
+      state.holdings.forEach(h => { catSums[h.category] = (catSums[h.category] || 0) + h.totalEval; });
+      const catCtx = document.getElementById('categoryChart').getContext('2d');
+      if (charts.category) charts.category.destroy();
+      charts.category = new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(catSums),
+          datasets: [{ data: Object.values(catSums), backgroundColor: ['#6366f1', '#10b981', '#ec4899'], borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } }, maintainAspectRatio: false }
+      });
+
+      const top5 = [...state.holdings].sort((a, b) => b.totalEval - a.totalEval).slice(0, 5);
+      const top5Ctx = document.getElementById('top5Chart').getContext('2d');
+      if (charts.top5) charts.top5.destroy();
+      charts.top5 = new Chart(top5Ctx, {
+        type: 'bar',
+        data: {
+          labels: top5.map(x => x.name.split(' ')[0]),
+          datasets: [{ label: '평가금액(원)', data: top5.map(x => Math.round(x.totalEval)), backgroundColor: '#3b82f6', borderRadius: 6 }]
+        },
+        options: {
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#e2e8f0' }, grid: { display: false } } },
+          maintainAspectRatio: false
+        }
+      });
+
+      const dCtx = document.getElementById('dailyAssetChart').getContext('2d');
+      if (charts.daily) charts.daily.destroy();
+      charts.daily = new Chart(dCtx, {
+        type: 'line',
+        data: {
+          labels: state.dailyTrend.map(d => d.date.slice(5)),
+          datasets: [{
+            label: '총 운용자산 (원)',
+            data: state.dailyTrend.map(d => d.totalAsset),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            fill: true,
+            tension: 0.25,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
+          maintainAspectRatio: false
+        }
+      });
+
+      const nCtx = document.getElementById('nvdaInteractiveChart').getContext('2d');
+      if (charts.nvda) charts.nvda.destroy();
+      charts.nvda = new Chart(nCtx, {
+        type: 'line',
+        data: {
+          labels: state.nvdaHistory.map(d => d.date),
+          datasets: [{
+            label: 'NVDA 종가 ($)',
+            data: state.nvdaHistory.map(d => d.close),
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.12)',
+            fill: true,
+            tension: 0.2
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
+          maintainAspectRatio: false
+        }
+      });
+    };
+
+    window.syncNow = async function() {
+      const apiUrl = localStorage.getItem('asset_pwa_api_url');
+      const badge = document.getElementById('syncBadge');
+      if (!apiUrl) {
+        badge.textContent = '로컬 스냅샷 모드 (URL 미설정)';
+        document.getElementById('lastUpdatedText').textContent = new Date().toLocaleString('ko-KR') + ' (로컬)';
+        window.recalculateAndRender();
+        return;
+      }
+      try {
+        badge.textContent = '동기화 중...';
+        const res = await fetch(apiUrl, { cache: 'no-store' });
+        const json = await res.json();
+        if (json.holdings && json.holdings.length > 0) {
+          state.holdings = json.holdings.map((h, i) => Object.assign({}, INITIAL_STATE.holdings[i] || {}, h));
+        }
+        if (json.dailyTrend && json.dailyTrend.length > 0) {
+          state.dailyTrend = json.dailyTrend;
+        }
+        document.getElementById('lastUpdatedText').textContent = json.updatedAt || new Date().toLocaleString('ko-KR');
+        badge.textContent = '실시간 연동 완료';
+        window.recalculateAndRender();
+      } catch (err) {
+        badge.textContent = '연동 오류 (URL/권한 확인)';
+        console.warn('Sync error:', err);
+      }
+    };
+
+    window.saveSyncSettings = function() {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      const sec = parseInt(document.getElementById('pollIntervalInput').value, 10);
+      localStorage.setItem('asset_pwa_api_url', url);
+      localStorage.setItem('asset_pwa_poll_sec', String(sec));
+      if (pollTimer) clearInterval(pollTimer);
+      if (url && sec > 0) pollTimer = setInterval(window.syncNow, sec * 1000);
+      window.closeConfigModal();
+      window.syncNow();
+    };
+
+    window.resetDefaultData = function() {
+      localStorage.removeItem('asset_pwa_state_v2');
+      state = JSON.parse(JSON.stringify(INITIAL_STATE));
+      window.recalculateAndRender();
+      window.closeConfigModal();
+    };
+
+    window.saveChecklist = function() {
+      const checks = ['chk1', 'chk2', 'chk3', 'chk4'].map(id => document.getElementById(id).checked);
+      localStorage.setItem('asset_pwa_checks', JSON.stringify(checks));
+    };
+
+    window.loadChecklist = function() {
+      const checks = JSON.parse(localStorage.getItem('asset_pwa_checks') || '[false,false,false,false]');
+      ['chk1', 'chk2', 'chk3', 'chk4'].forEach((id, i) => {
+        if (document.getElementById(id)) document.getElementById(id).checked = !!checks[i];
+      });
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.loadChecklist();
+      window.recalculateAndRender();
+      const savedUrl = localStorage.getItem('asset_pwa_api_url');
+      const savedSec = parseInt(localStorage.getItem('asset_pwa_poll_sec') || '60', 10);
+      if (savedUrl) {
+        window.syncNow();
+        if (savedSec > 0) pollTimer = setInterval(window.syncNow, savedSec * 1000);
+      }
+    });
+  </script>
 </head>
 <body class="min-h-screen pb-20">
-  <!-- 상단 고정 헤더 -->
   <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-3">
@@ -37,9 +460,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="installPwaBtn" type="button" class="hidden text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
-          앱 설치 (PWA)
-        </button>
         <button id="btnSyncNow" type="button" onclick="window.syncNow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
           지금 새로고침
         </button>
@@ -51,7 +471,6 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 pt-5 space-y-6">
-    <!-- 핵심 KPI 요약 카드 (6개) -->
     <section class="grid grid-cols-2 lg:grid-cols-6 gap-3">
       <div class="card p-4">
         <div class="text-xs text-slate-400">총 운용자산 (평가금액)</div>
@@ -85,7 +504,6 @@
       </div>
     </section>
 
-    <!-- 탭 네비게이션 -->
     <nav class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
       <button type="button" onclick="window.switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종합 대시보드 & 전략</button>
       <button type="button" onclick="window.switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">보유종목 상세 (12종목)</button>
@@ -94,7 +512,6 @@
       <button type="button" onclick="window.switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">대출 관리 & 실현손익 기록부</button>
     </nav>
 
-    <!-- [탭 1] 종합 대시보드 & 전략 -->
     <section id="tab-dashboard" class="space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="card p-4">
@@ -177,7 +594,6 @@
       </div>
     </section>
 
-    <!-- [탭 2] 보유종목 상세 -->
     <section id="tab-holdings" class="hidden space-y-4">
       <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
@@ -220,7 +636,6 @@
       </div>
     </section>
 
-    <!-- [탭 3] 일별 자산추이 -->
     <section id="tab-daily" class="hidden space-y-4">
       <div class="card p-4">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -250,7 +665,6 @@
       </div>
     </section>
 
-    <!-- [탭 4] 종목 주가 & 52주 분석 -->
     <section id="tab-chart" class="hidden space-y-4">
       <div class="card p-4 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -282,7 +696,6 @@
       </div>
     </section>
 
-    <!-- [탭 5] 대출 관리 & 실현손익 기록부 -->
     <section id="tab-loans-pnl" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="card p-4 space-y-3">
@@ -354,7 +767,6 @@
             <option value="0">수동 새로고침만 사용</option>
           </select>
         </div>
-        <div id="syncStatusMsg" class="text-xs text-sky-400 pt-1"></div>
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button type="button" onclick="window.resetDefaultData()" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">기본 스냅샷 복원</button>
@@ -362,34 +774,5 @@
       </div>
     </div>
   </div>
-
-  <script>
-    // 모달 제어 함수를 최우선으로 전역(window)에 등록
-    window.openConfigModal = function() {
-      var modal = document.getElementById('configModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
-      var urlInput = document.getElementById('apiUrlInput');
-      var pollInput = document.getElementById('pollIntervalInput');
-      if (urlInput) urlInput.value = localStorage.getItem('asset_pwa_api_url') || '';
-      if (pollInput) pollInput.value = localStorage.getItem('asset_pwa_poll_sec') || '60';
-      var msg = document.getElementById('syncStatusMsg');
-      if (msg) msg.textContent = '';
-    };
-
-    window.closeConfigModal = function() {
-      var modal = document.getElementById('configModal');
-      if (modal) modal.style.display = 'none';
-    };
-
-    const INITIAL_STATE = {
-      holdings: [
-        { no: 1, account: "계좌 2", name: "엔비디아 (NVDA)", ticker: "NASDAQ:NVDA", category: "미국주식", qty: 59, buyPrice: 17074.6, curPrice: 297667, totalBuy: 1007400, totalEval: 17562371.32, pnl: 16554971.32, low52: "$164.27", high52: "$243.37", pos52: 72.1, memo: "매입 $12.75 / 현재 $238.19 (비중 8.38%)" },
-        { no: 3, account: "계좌 2", name: "TSMC ADR (TSM)", ticker: "NYSE:TSM", category: "미국주식", qty: 10, buyPrice: 220363, curPrice: 578387, totalBuy: 2203630, totalEval: 5783870, pnl: 3580240, low52: "$266.82", high52: "$487.47", pos52: 74.0, memo: "매입 $164.55 / 현재 $474.70 (비중 2.83%)" },
-        { no: 2, account: "계좌 2", name: "애플 (AAPL)", ticker: "NASDAQ:AAPL", category: "미국주식", qty: 24, buyPrice: 218435, curPrice: 461310, totalBuy: 5242430, totalEval: 11071448.44, pnl: 5829018.44, low52: "$243.42", high52: "$348.15", pos52: 95.0, memo: "매입 $163.11 / 현재 $335.77 (비중 4.80%)" },
-        { no: 4, account: "계좌 2", name: "알파벳 A (GOOGL)", ticker: "NASDAQ:GOOGL", category: "미국주식", qty: 14, buyPrice: 343126, curPrice: 467605, totalBuy: 4803760, totalEval: 6546470, pnl: 1742710, low52: "$244.15", high52: "$408.61", pos52: 62.9, memo: "매입 $256.22 / 현재 $345.74 (비중 2.89%)" },
-        { no: 5, account: "계좌 2", name: "AMD (AMD)", ticker: "NASDAQ:AMD", category: "미국주식", qty: 6, buyPrice: 606370, curPrice: 767801, totalBuy: 3638220, totalEval: 4606806, pnl: 968586, low52: "$188.22", high52: "$658.52", pos52: 81.4, memo: "매입 $452.79 / 현재 $637.78 (비중 2.28%)" },
-        { no: 6, account: "계좌 3", name: "TIGER 미국나스닥100레버리지(합성)", ticker: "KRX:418660", category: "ETF", qty: 720, buyPrice: 38878, curPrice: 38155, totalBuy: 27992200, totalEval: 27471600, pnl: -520600, low52: "₩30,010", high52: "₩53,900", pos52: 34.1, memo: "나스닥 2배 레버리지 (비중 13.49%)" },
-        { no: 9, account: "계좌 1", name: "삼성전자", ticker: "KRX:005930", category: "국내주식", qty: 202, buyPrice: 259258, curPrice: 210000, totalBuy: 52370100, totalEval: 42420000, pnl: -9950100, low52: "₩92,100", high52: "₩374,500", pos52: 41.7, memo: "국내 대형 반도체 (비중 24.14%)" },
-        { no: 7, account: "계좌 2", name: "인텔 (INTC)", ticker: "NASDAQ:INTC", category: "미국주식", qty: 28, buyPrice: 165108, curPrice: 131980, totalBuy: 4623030, totalEval: 3695440, pnl: -927590, low52: "$32.89", high52: "$142.34", pos52: 59.6, memo: "매입 $123.29 / 현재 $112.72 (비중 1.88%)" },
-        { no: 11, account: "계좌 1", name: "SK하이닉스", ticker: "KRX:000660", category: "국내주식", qty: 33, buyPrice: 1879190, curPrice: 1262000, totalBuy: 6201310
+</body>
+</html>
