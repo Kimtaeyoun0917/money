@@ -4,13 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="자산대시보드" />
-  <title>총 자산 현황 & 투자노트 실시간 대시보드 (PWA)</title>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" href="./icon-192.png" />
-  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>투자 포트폴리오 & 레버리지 자산 관리 대시보드</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -22,78 +16,47 @@
     ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
   </style>
 
-  <!-- 핵심 함수를 최상단에서 즉시 선언하여 onclick 에러 원천 차단 -->
   <script>
     const INITIAL_STATE = {
       holdings: [
-        { no: 1, account: "계좌 2", name: "엔비디아 (NVDA)", ticker: "NASDAQ:NVDA", category: "미국주식", qty: 59, buyPrice: 17074.6, curPrice: 297667, totalBuy: 1007400, totalEval: 17562371.32, pnl: 16554971.32, low52: "$164.27", high52: "$243.37", pos52: 72.1, memo: "매입 $12.75 / 현재 $238.19 (비중 8.38%)" },
-        { no: 3, account: "계좌 2", name: "TSMC ADR (TSM)", ticker: "NYSE:TSM", category: "미국주식", qty: 10, buyPrice: 220363, curPrice: 578387, totalBuy: 2203630, totalEval: 5783870, pnl: 3580240, low52: "$266.82", high52: "$487.47", pos52: 74.0, memo: "매입 $164.55 / 현재 $474.70 (비중 2.83%)" },
-        { no: 2, account: "계좌 2", name: "애플 (AAPL)", ticker: "NASDAQ:AAPL", category: "미국주식", qty: 24, buyPrice: 218435, curPrice: 461310, totalBuy: 5242430, totalEval: 11071448.44, pnl: 5829018.44, low52: "$243.42", high52: "$348.15", pos52: 95.0, memo: "매입 $163.11 / 현재 $335.77 (비중 4.80%)" },
-        { no: 4, account: "계좌 2", name: "알파벳 A (GOOGL)", ticker: "NASDAQ:GOOGL", category: "미국주식", qty: 14, buyPrice: 343126, curPrice: 467605, totalBuy: 4803760, totalEval: 6546470, pnl: 1742710, low52: "$244.15", high52: "$408.61", pos52: 62.9, memo: "매입 $256.22 / 현재 $345.74 (비중 2.89%)" },
-        { no: 5, account: "계좌 2", name: "AMD (AMD)", ticker: "NASDAQ:AMD", category: "미국주식", qty: 6, buyPrice: 606370, curPrice: 767801, totalBuy: 3638220, totalEval: 4606806, pnl: 968586, low52: "$188.22", high52: "$658.52", pos52: 81.4, memo: "매입 $452.79 / 현재 $637.78 (비중 2.28%)" },
-        { no: 6, account: "계좌 3", name: "TIGER 미국나스닥100레버리지(합성)", ticker: "KRX:418660", category: "ETF", qty: 720, buyPrice: 38878, curPrice: 38155, totalBuy: 27992200, totalEval: 27471600, pnl: -520600, low52: "₩30,010", high52: "₩53,900", pos52: 34.1, memo: "나스닥 2배 레버리지 (비중 13.49%)" },
-        { no: 9, account: "계좌 1", name: "삼성전자", ticker: "KRX:005930", category: "국내주식", qty: 202, buyPrice: 259258, curPrice: 210000, totalBuy: 52370100, totalEval: 42420000, pnl: -9950100, low52: "₩92,100", high52: "₩374,500", pos52: 41.7, memo: "국내 대형 반도체 (비중 24.14%)" },
-        { no: 7, account: "계좌 2", name: "인텔 (INTC)", ticker: "NASDAQ:INTC", category: "미국주식", qty: 28, buyPrice: 165108, curPrice: 131980, totalBuy: 4623030, totalEval: 3695440, pnl: -927590, low52: "$32.89", high52: "$142.34", pos52: 59.6, memo: "매입 $123.29 / 현재 $112.72 (비중 1.88%)" },
-        { no: 11, account: "계좌 1", name: "SK하이닉스", ticker: "KRX:000660", category: "국내주식", qty: 33, buyPrice: 1879190, curPrice: 1262000, totalBuy: 62013100, totalEval: 41646000, pnl: -20367100, low52: "₩407,000", high52: "₩2,987,000", pos52: 33.1, memo: "HBM 핵심 수혜주 (비중 25.14%)" },
-        { no: 8, account: "계좌 3", name: "TIGER 미국필라델피아반도체레버리지(합성)", ticker: "KRX:423920", category: "ETF", qty: 92, buyPrice: 155000, curPrice: 72480, totalBuy: 14260000, totalEval: 6668160, pnl: -7591840, low52: "₩33,285", high52: "₩173,800", pos52: 27.9, memo: "필라델피아 반도체 2배 (비중 3.91%)" },
-        { no: 12, account: "계좌 1", name: "KODEX 삼성전자단일종목레버리지", ticker: "KRX:0193W0", category: "국내주식", qty: 1327, buyPrice: 27031, curPrice: 7595, totalBuy: 35870100, totalEval: 10078565, pnl: -25791535, low52: "₩6,800", high52: "₩33,000", pos52: 3.0, memo: "삼성전자 단일 레버리지 (비중 7.51%)" },
-        { no: 10, account: "계좌 1", name: "KODEX SK하이닉스단일종목레버리지", ticker: "KRX:0193T0", category: "국내주식", qty: 610, buyPrice: 29305, curPrice: 5285, totalBuy: 17876000, totalEval: 3223850, pnl: -14652150, low52: "₩5,025", high52: "₩44,385", pos52: 0.7, memo: "하이닉스 단일 레버리지 (비중 2.75%)" }
+        { account: "계좌 2", name: "엔비디아 (NVDA)", ticker: "NASDAQ:NVDA", category: "미국주식", qty: 59, buyPrice: 17074.6, curPrice: 298624, totalBuy: 1007401, totalEval: 17618825, pnl: 16611423, dailyPnl: 35230, weeklyPnl: 141000, memo: "매입 $12.75" },
+        { account: "계좌 2", name: "TSMC ADR (TSM)", ticker: "NYSE:TSM", category: "미국주식", qty: 10, buyPrice: 220363, curPrice: 578387, totalBuy: 2203630, totalEval: 5783870, pnl: 3580240, dailyPnl: 11500, weeklyPnl: 46000, memo: "매입 $164.55" },
+        { account: "계좌 2", name: "애플 (AAPL)", ticker: "NASDAQ:AAPL", category: "미국주식", qty: 24, buyPrice: 218435, curPrice: 461310, totalBuy: 5242440, totalEval: 11071448, pnl: 5829008, dailyPnl: 22100, weeklyPnl: 88500, memo: "매입 $163.11" },
+        { account: "계좌 2", name: "알파벳 A (GOOGL)", ticker: "NASDAQ:GOOGL", category: "미국주식", qty: 14, buyPrice: 343126, curPrice: 467605, totalBuy: 4803764, totalEval: 6546470, pnl: 1742706, dailyPnl: 13000, weeklyPnl: 52000, memo: "매입 $256.22" },
+        { account: "계좌 2", name: "AMD (AMD)", ticker: "NASDAQ:AMD", category: "미국주식", qty: 6, buyPrice: 606370, curPrice: 767801, totalBuy: 3638220, totalEval: 4606806, pnl: 968586, dailyPnl: 9200, weeklyPnl: 36800, memo: "매입 $452.79" },
+        { account: "계좌 3", name: "TIGER 미국나스닥100레버리지(합성)", ticker: "KRX:418660", category: "ETF", qty: 720, buyPrice: 38878, curPrice: 38155, totalBuy: 27992160, totalEval: 27471600, pnl: -520560, dailyPnl: -5400, weeklyPnl: -21600, memo: "나스닥 2배" },
+        { account: "계좌 1", name: "삼성전자", ticker: "KRX:005930", category: "국내주식", qty: 202, buyPrice: 259258, curPrice: 210000, totalBuy: 52370116, totalEval: 42420000, pnl: -9950116, dailyPnl: -84800, weeklyPnl: -339000, memo: "국내 대형 반도체" },
+        { account: "계좌 2", name: "인텔 (INTC)", ticker: "NASDAQ:INTC", category: "미국주식", qty: 28, buyPrice: 165108, curPrice: 131980, totalBuy: 4623024, totalEval: 3695440, pnl: -927584, dailyPnl: -7400, weeklyPnl: -29600, memo: "매입 $123.29" },
+        { account: "계좌 1", name: "SK하이닉스", ticker: "KRX:000660", category: "국내주식", qty: 33, buyPrice: 1879185, curPrice: 1262000, totalBuy: 62013105, totalEval: 41646000, pnl: -20367105, dailyPnl: -83300, weeklyPnl: -333000, memo: "HBM 수혜주" },
+        { account: "계좌 3", name: "TIGER 미국필라델피아반도체레버리지", ticker: "KRX:423920", category: "ETF", qty: 92, buyPrice: 155000, curPrice: 72480, totalBuy: 14260000, totalEval: 6668160, pnl: -7591840, dailyPnl: -13300, weeklyPnl: -53200, memo: "필라델피아 2배" },
+        { account: "계좌 1", name: "KODEX 삼성전자단일레버리지", ticker: "KRX:0193W0", category: "국내주식", qty: 1327, buyPrice: 27031, curPrice: 7595, totalBuy: 35870137, totalEval: 10078565, pnl: -25791572, dailyPnl: -20100, weeklyPnl: -80400, memo: "삼전 단일레버리지" },
+        { account: "계좌 1", name: "KODEX SK하이닉스단일레버리지", ticker: "KRX:0193T0", category: "국내주식", qty: 610, buyPrice: 29305, curPrice: 5285, totalBuy: 17876050, totalEval: 3223850, pnl: -14652200, dailyPnl: -6400, weeklyPnl: -25600, memo: "하이닉스 단일레버리지" }
       ],
       loans: [
         { lender: "새마을금고1", principal: 38000000, rate: 0.045, monthly: 142500 },
-        { lender: "새마을금고2", principal: 14250000, rate: 0.043, monthly: 51062.5 },
+        { lender: "새마을금고2", principal: 14250000, rate: 0.043, monthly: 51062 },
         { lender: "카카오뱅크", principal: 30000000, rate: 0.06598, monthly: 164950 },
         { lender: "기타 차입금", principal: 30000000, rate: 0.034, monthly: 85000 }
       ],
       realizedPnl: [
-        { no: 1, account: "신한증권 국내주식", period: "2016.09.04 ~ 2026.10.04", tradePnl: 3023991, totalPnl: 3023991, note: "국내주식 누적 손익" },
-        { no: 2, account: "신한증권 해외주식", period: "2023.05.14 ~ 2026.10.04", tradePnl: 5280391, totalPnl: 5280391, note: "해외주식 누적 손익" },
-        { no: 3, account: "토스증권 기본계좌", period: "2021.04.15 ~ 2026.10.04", tradePnl: 45903446, totalPnl: 46004121, note: "배당금 85,087원 / 이자 15,588원 포함" },
-        { no: 4, account: "카카오증권 전체시장", period: "2026.01.01 ~ 2026.10.04", tradePnl: -4175637, totalPnl: -4175637, note: "전체시장 실현손실" }
+        { account: "신한증권 국내주식", period: "2016~2026", totalPnl: 3023991, note: "국내주식 누적" },
+        { account: "신한증권 해외주식", period: "2023~2026", totalPnl: 5280391, note: "해외주식 누적" },
+        { account: "토스증권 기본계좌", period: "2021~2026", totalPnl: 46004121, note: "배당·이자 포함" },
+        { account: "카카오증권 전체시장", period: "2026", totalPnl: -4175637, note: "실현손실" }
       ],
-      dailyTrend: [
-        { date: "2026-10-01", time: "07:00", totalAsset: 176200000, diff: 0, diffRate: "0.00%", note: "초기 기록 시작" },
-        { date: "2026-10-02", time: "07:00", totalAsset: 176850000, diff: 650000, diffRate: "+0.37%", note: "국내외 증시 반등" },
-        { date: "2026-10-03", time: "07:00", totalAsset: 176850000, diff: 0, diffRate: "0.00%", note: "개천절 국내 휴장" },
-        { date: "2026-10-04", time: "07:00", totalAsset: 177400000, diff: 550000, diffRate: "+0.31%", note: "미국 기술주 강세" },
-        { date: "2026-10-05", time: "07:00", totalAsset: 177150000, diff: -250000, diffRate: "-0.14%", note: "주말 환율 변동" },
-        { date: "2026-10-06", time: "07:00", totalAsset: 177900000, diff: 750000, diffRate: "+0.42%", note: "배당금 입금 및 재투자" },
-        { date: "2026-10-07", time: "07:00", totalAsset: 178500000, diff: 600000, diffRate: "+0.34%", note: "반도체 섹터 추가 상승" },
-        { date: "2026-10-08", time: "07:00", totalAsset: 178100000, diff: -400000, diffRate: "-0.22%", note: "단기 차익 실현 조정" },
-        { date: "2026-10-09", time: "07:00", totalAsset: 178100000, diff: 0, diffRate: "0.00%", note: "한글날 휴장" },
-        { date: "2026-10-10", time: "07:00", totalAsset: 179250000, diff: 1150000, diffRate: "+0.65%", note: "빅테크 호실적 전망" },
-        { date: "2026-10-11", time: "07:00", totalAsset: 179050000, diff: -200000, diffRate: "-0.11%", note: "주말 마감 기준" },
-        { date: "2026-10-12", time: "07:00", totalAsset: 179800000, diff: 750000, diffRate: "+0.42%", note: "글로벌 지수 동반 상승" },
-        { date: "2026-10-13", time: "07:00", totalAsset: 180200000, diff: 400000, diffRate: "+0.22%", note: "운용자산 1.8억원 돌파" },
-        { date: "2026-10-14", time: "07:00", totalAsset: 180450000, diff: 250000, diffRate: "+0.14%", note: "견고한 상승세 지속" },
-        { date: "2026-10-15", time: "07:00", totalAsset: 180774576, diff: 324576, diffRate: "+0.18%", note: "현재 실시간 총자산 스냅샷" }
-      ],
-      nvdaHistory: [
-        {"date":"2025-10-15","close":179.83},{"date":"2025-10-29","close":207.04},{"date":"2025-11-14","close":190.17},
-        {"date":"2025-11-28","close":177.00},{"date":"2025-12-17","close":170.94},{"date":"2025-12-31","close":186.50},
-        {"date":"2026-01-15","close":187.05},{"date":"2026-01-29","close":192.51},{"date":"2026-02-05","close":171.88},
-        {"date":"2026-02-25","close":195.56},{"date":"2026-03-11","close":186.03},{"date":"2026-03-30","close":165.17},
-        {"date":"2026-04-15","close":198.87},{"date":"2026-04-27","close":216.61},{"date":"2026-05-14","close":235.74},
-        {"date":"2026-06-01","close":224.36},{"date":"2026-06-26","close":192.53},{"date":"2026-07-15","close":212.50},
-        {"date":"2026-07-29","close":190.01},{"date":"2026-08-13","close":225.30},{"date":"2026-08-27","close":227.98},
-        {"date":"2026-09-04","close":230.36},{"date":"2026-09-22","close":228.87},{"date":"2026-10-06","close":239.24},
-        {"date":"2026-10-14","close":221.30}
-      ]
+      cardOrder: ['card-total-eval', 'card-realized', 'card-daily', 'card-weekly', 'card-debt', 'card-unrealized', 'card-networth']
     };
 
-    let state = JSON.parse(localStorage.getItem('asset_pwa_state_v2') || 'null') || JSON.parse(JSON.stringify(INITIAL_STATE));
-    let charts = {};
-    let pollTimer = null;
+    let state = JSON.parse(localStorage.getItem('asset_pwa_state_v5') || 'null') || JSON.parse(JSON.stringify(INITIAL_STATE));
+    if (!state.cardOrder) state.cardOrder = INITIAL_STATE.cardOrder;
 
     const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
     const fmtNum = (n) => Math.round(Number(n) || 0).toLocaleString('ko-KR');
 
     window.openConfigModal = function() {
       const modal = document.getElementById('configModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
+      if (modal) modal.style.display = 'flex';
       document.getElementById('apiUrlInput').value = localStorage.getItem('asset_pwa_api_url') || '';
-      document.getElementById('pollIntervalInput').value = localStorage.getItem('asset_pwa_poll_sec') || '60';
     };
 
     window.closeConfigModal = function() {
@@ -101,10 +64,8 @@
       if (modal) modal.style.display = 'none';
     };
 
-    window.toggleConfigModal = window.openConfigModal;
-
     window.switchTab = function(tabId) {
-      ['tab-dashboard', 'tab-holdings', 'tab-daily', 'tab-chart', 'tab-loans-pnl'].forEach(id => {
+      ['tab-dashboard', 'tab-holdings', 'tab-loans-pnl'].forEach(id => {
         const sec = document.getElementById(id);
         const btn = document.getElementById('btn-' + id);
         if (sec) sec.classList.toggle('hidden', id !== tabId);
@@ -118,6 +79,12 @@
       const unrealizedPnl = totalEval - totalBuy;
       const unrealizedRate = totalBuy > 0 ? (unrealizedPnl / totalBuy) * 100 : 0;
 
+      const totalDailyPnl = state.holdings.reduce((s, h) => s + (Number(h.dailyPnl) || 0), 0);
+      const totalDailyRate = totalEval > 0 ? (totalDailyPnl / totalEval) * 100 : 0;
+
+      const totalWeeklyPnl = state.holdings.reduce((s, h) => s + (Number(h.weeklyPnl) || 0), 0);
+      const totalWeeklyRate = totalEval > 0 ? (totalWeeklyPnl / totalEval) * 100 : 0;
+
       const totalDebt = state.loans.reduce((s, l) => s + (Number(l.principal) || 0), 0);
       const monthlyInterest = state.loans.reduce((s, l) => s + (Number(l.monthly) || 0), 0);
       const annualInterest = monthlyInterest * 12;
@@ -127,508 +94,368 @@
 
       const totalRealized = state.realizedPnl.reduce((s, r) => s + (Number(r.totalPnl) || 0), 0);
       const cumulativeNetPnl = unrealizedPnl + totalRealized;
+      const cumulativeReturnRate = totalBuy > 0 ? (cumulativeNetPnl / totalBuy) * 100 : 0;
 
+      // KPI 반영
       document.getElementById('kpiTotalAsset').textContent = fmtKRW(totalEval);
-      document.getElementById('kpiNetWorth').textContent = fmtKRW(netWorth);
-      document.getElementById('kpiEquityRatio').textContent = '자기자본 비중 ' + equityRatio.toFixed(1) + '% (권장 30%↑)';
+      document.getElementById('kpiTotalBuySub').textContent = '원금 ' + fmtKRW(totalBuy) + ' (평가 ' + (totalBuy > 0 ? (totalEval/totalBuy*100).toFixed(1) : 0) + '%)';
+
+      const rEl = document.getElementById('kpiRealizedPnl');
+      rEl.textContent = (totalRealized >= 0 ? '+' : '') + fmtKRW(totalRealized);
+      rEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (totalRealized >= 0 ? 'text-emerald-400' : 'text-rose-400');
+
+      const dEl = document.getElementById('kpiDailyPnl');
+      dEl.textContent = (totalDailyPnl >= 0 ? '+' : '') + fmtKRW(totalDailyPnl) + ' (' + (totalDailyRate >= 0 ? '+' : '') + totalDailyRate.toFixed(2) + '%)';
+      dEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (totalDailyPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+
+      const wEl = document.getElementById('kpiWeeklyPnl');
+      wEl.textContent = (totalWeeklyPnl >= 0 ? '+' : '') + fmtKRW(totalWeeklyPnl) + ' (' + (totalWeeklyRate >= 0 ? '+' : '') + totalWeeklyRate.toFixed(2) + '%)';
+      wEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (totalWeeklyPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+
       document.getElementById('kpiTotalDebt').textContent = fmtKRW(totalDebt);
-      document.getElementById('kpiInterestInfo').textContent = '월 ' + fmtKRW(monthlyInterest) + ' / 연 ' + fmtKRW(annualInterest);
-      document.getElementById('kpiLeverage').textContent = leverageRatio.toFixed(2) + '%';
+      document.getElementById('kpiInterestInfo').textContent = '월 이자 ' + fmtKRW(monthlyInterest) + ' / 부채비율 ' + leverageRatio.toFixed(1) + '%';
 
       const uEl = document.getElementById('kpiUnrealizedPnl');
       uEl.textContent = (unrealizedPnl >= 0 ? '+' : '') + fmtKRW(unrealizedPnl);
       uEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
-      document.getElementById('kpiUnrealizedRate').textContent = '원금 ' + fmtKRW(totalBuy) + ' 대비 ' + unrealizedRate.toFixed(2) + '%';
+      document.getElementById('kpiUnrealizedRate').textContent = '수익률: ' + (unrealizedRate >= 0 ? '+' : '') + unrealizedRate.toFixed(2) + '%';
 
-      const cEl = document.getElementById('kpiNetCumulativePnl');
-      cEl.textContent = (cumulativeNetPnl >= 0 ? '+' : '') + fmtKRW(cumulativeNetPnl);
-      cEl.className = 'text-lg sm:text-xl font-bold mt-1 ' + (cumulativeNetPnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      document.getElementById('kpiNetWorth').textContent = fmtKRW(netWorth);
+      document.getElementById('kpiEquityRatio').textContent = '자기자본 비중 ' + equityRatio.toFixed(1) + '% (권장 30%↑)';
 
       window.renderHoldings();
-      window.renderDailyTrend();
-      window.renderRange52();
-      window.renderLoansAndRealized();
-      window.renderCharts(netWorth, totalDebt);
-      localStorage.setItem('asset_pwa_state_v2', JSON.stringify(state));
+      window.renderLoans();
+      window.renderRealizedTable();
+      window.applyCardOrder();
+      localStorage.setItem('asset_pwa_state_v5', JSON.stringify(state));
     };
 
-    window.updateHoldingPrice = function(index, newPriceStr) {
-      const val = parseFloat(newPriceStr);
-      if (isNaN(val) || val < 0) return;
-      const item = state.holdings[index];
-      item.curPrice = val;
-      item.totalEval = item.qty * val;
-      item.pnl = item.totalEval - item.totalBuy;
+    // 카드 순서 조정 기능 (위/아래 이동 후 즉시 저장)
+    window.moveCard = function(cardId, direction) {
+      const idx = state.cardOrder.indexOf(cardId);
+      if (idx === -1) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= state.cardOrder.length) return;
+      
+      const temp = state.cardOrder[idx];
+      state.cardOrder[idx] = state.cardOrder[targetIdx];
+      state.cardOrder[targetIdx] = temp;
+      
       window.recalculateAndRender();
     };
 
+    window.applyCardOrder = function() {
+      const container = document.getElementById('kpiContainer');
+      if (!container) return;
+      state.cardOrder.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) container.appendChild(el);
+      });
+    };
+
+    // 대출 추가, 삭제, 이자율 수정 기능
+    window.updateLoanField = function(index, field, value) {
+      if (field === 'lender') {
+        state.loans[index].lender = value;
+      } else {
+        const val = parseFloat(value);
+        if (isNaN(val) || val < 0) return;
+        state.loans[index][field] = val;
+        if (field === 'principal' || field === 'rate') {
+          state.loans[index].monthly = Math.round((state.loans[index].principal * state.loans[index].rate) / 12);
+        }
+      }
+      window.recalculateAndRender();
+    };
+
+    window.addLoanRow = function() {
+      state.loans.push({ lender: "신규 대출", principal: 10000000, rate: 0.05, monthly: 41666 });
+      window.recalculateAndRender();
+    };
+
+    window.deleteLoanRow = function(index) {
+      if (state.loans.length <= 1) {
+        alert("최소 1개의 대출 항목은 유지되어야 합니다.");
+        return;
+      }
+      state.loans.splice(index, 1);
+      window.recalculateAndRender();
+    };
+
+    window.updateHoldingField = function(index, field, value) {
+      const val = parseFloat(value);
+      if (isNaN(val) || val < 0) return;
+      state.holdings[index][field] = val;
+      state.holdings[index].totalBuy = state.holdings[index].qty * state.holdings[index].buyPrice;
+      state.holdings[index].totalEval = state.holdings[index].qty * state.holdings[index].curPrice;
+      state.holdings[index].pnl = state.holdings[index].totalEval - state.holdings[index].totalBuy;
+      window.recalculateAndRender();
+      window.syncToServer();
+    };
+
     window.renderHoldings = function() {
-      const accFilter = document.getElementById('filterAccount').value;
-      const catFilter = document.getElementById('filterCategory').value;
       const tbody = document.getElementById('holdingsTableBody');
       tbody.innerHTML = '';
-
       state.holdings.forEach((h, idx) => {
-        if (accFilter !== 'ALL' && h.account !== accFilter) return;
-        if (catFilter !== 'ALL' && h.category !== catFilter) return;
         const rate = h.totalBuy > 0 ? ((h.totalEval - h.totalBuy) / h.totalBuy) * 100 : 0;
         const pnlColor = h.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const dColor = (h.dailyPnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-800/50 transition';
         tr.innerHTML =
-          '<td class="py-2.5 px-3 text-slate-300">' + h.account + '</td>' +
-          '<td class="py-2.5 px-3 font-medium text-white">' + h.name + '</td>' +
-          '<td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">' + h.category + '</span></td>' +
-          '<td class="py-2.5 px-3 text-right">' + fmtNum(h.qty) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtNum(h.buyPrice) + '</td>' +
+          '<td class="py-2.5 px-3 text-slate-300 font-medium">' + h.account + '</td>' +
+          '<td class="py-2.5 px-3 font-semibold text-white">' + h.name + '<br><span class="text-[10px] text-slate-400">' + (h.ticker || '') + '</span></td>' +
           '<td class="py-2.5 px-3 text-right">' +
-            '<input type="number" value="' + Math.round(h.curPrice) + '" onchange="window.updateHoldingPrice(' + idx + ', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-right text-sky-300 font-semibold focus:border-blue-500 outline-none" />' +
+            '<input type="number" value="' + h.qty + '" onchange="window.updateHoldingField(' + idx + ', \'qty\', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-right text-white font-medium" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+            '<input type="number" value="' + Math.round(h.buyPrice) + '" onchange="window.updateHoldingField(' + idx + ', \'buyPrice\', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-right text-slate-200" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+            '<input type="number" value="' + Math.round(h.curPrice) + '" onchange="window.updateHoldingField(' + idx + ', \'curPrice\', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-right text-sky-300 font-semibold" />' +
           '</td>' +
           '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtKRW(h.totalBuy) + '</td>' +
           '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(h.totalEval) + '</td>' +
-          '<td class="py-2.5 px-3 text-right font-semibold ' + pnlColor + '">' + (h.pnl >= 0 ? '+' : '') + fmtKRW(h.pnl) + '</td>' +
-          '<td class="py-2.5 px-3 text-right font-semibold ' + pnlColor + '">' + (rate >= 0 ? '+' : '') + rate.toFixed(2) + '%</td>' +
-          '<td class="py-2.5 px-3 text-slate-400">' + (h.memo || '') + '</td>';
+          '<td class="py-2.5 px-3 text-right font-semibold ' + dColor + '">' + ((h.dailyPnl||0)>=0?'+':'') + fmtKRW(h.dailyPnl||0) + '</td>' +
+          '<td class="py-2.5 px-3 text-right font-semibold ' + pnlColor + '">' + (h.pnl >= 0 ? '+' : '') + fmtKRW(h.pnl) + '<br><span class="text-[10px]">' + (rate>=0?'+':'')+rate.toFixed(1) + '%</span></td>' +
+          '<td class="py-2.5 px-3 text-slate-400 text-[11px]">' + (h.memo || '') + '</td>';
         tbody.appendChild(tr);
       });
     };
 
-    window.renderDailyTrend = function() {
-      const tbody = document.getElementById('dailyTableBody');
+    window.renderLoans = function() {
+      const tbody = document.getElementById('loansTableBody');
       tbody.innerHTML = '';
-      [...state.dailyTrend].reverse().forEach(d => {
-        const col = d.diff > 0 ? 'text-emerald-400' : (d.diff < 0 ? 'text-rose-400' : 'text-slate-400');
+      state.loans.forEach((l, idx) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/50';
         tr.innerHTML =
-          '<td class="py-2.5 px-3 font-medium text-white">' + d.date + '</td>' +
-          '<td class="py-2.5 px-3 text-slate-400">' + d.time + '</td>' +
-          '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(d.totalAsset) + '</td>' +
-          '<td class="py-2.5 px-3 text-right ' + col + '">' + (d.diff > 0 ? '+' : '') + fmtKRW(d.diff) + '</td>' +
-          '<td class="py-2.5 px-3 text-right ' + col + '">' + d.diffRate + '</td>' +
-          '<td class="py-2.5 px-3 text-slate-300">' + d.note + '</td>';
-        tbody.appendChild(tr);
-      });
-    };
-
-    window.addTodaySnapshot = function() {
-      const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10);
-      const timeStr = now.toTimeString().slice(0, 5);
-      const totalEval = state.holdings.reduce((s, h) => s + h.totalEval, 0);
-      const prev = state.dailyTrend[state.dailyTrend.length - 1] || { totalAsset: totalEval };
-      const diff = totalEval - prev.totalAsset;
-      const diffRate = prev.totalAsset > 0 ? ((diff / prev.totalAsset) * 100).toFixed(2) + '%' : '0.00%';
-      state.dailyTrend.push({
-        date: dateStr,
-        time: timeStr,
-        totalAsset: totalEval,
-        diff: diff,
-        diffRate: (diff >= 0 ? '+' : '') + diffRate,
-        note: '웹 대시보드 수동 스냅샷'
-      });
-      window.recalculateAndRender();
-    };
-
-    window.renderRange52 = function() {
-      const tbody = document.getElementById('range52TableBody');
-      tbody.innerHTML = '';
-      state.holdings.forEach(h => {
-        const pct = Math.max(0, Math.min(100, h.pos52 || 50));
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/50';
-        tr.innerHTML =
-          '<td class="py-2.5 px-3 font-medium text-white">' + h.name + '</td>' +
-          '<td class="py-2.5 px-3 text-slate-400">' + (h.ticker || '-') + '</td>' +
-          '<td class="py-2.5 px-3 text-right font-semibold text-white">' + fmtKRW(h.curPrice) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-slate-300">' + (h.low52 || '-') + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-slate-300">' + (h.high52 || '-') + '</td>' +
           '<td class="py-2.5 px-3">' +
-            '<div class="flex items-center gap-2">' +
-              '<div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">' +
-                '<div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-2 rounded-full" style="width:' + pct + '%"></div>' +
-              '</div>' +
-              '<span class="text-xs font-semibold text-sky-400 w-12 text-right">' + pct.toFixed(1) + '%</span>' +
-            '</div>' +
+            '<input type="text" value="' + l.lender + '" onchange="window.updateLoanField(' + idx + ', \'lender\', this.value)" class="w-28 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white font-medium" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+            '<input type="number" value="' + l.principal + '" onchange="window.updateLoanField(' + idx + ', \'principal\', this.value)" class="w-32 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-right text-amber-400 font-semibold" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right">' +
+            '<input type="number" step="0.001" value="' + l.rate + '" onchange="window.updateLoanField(' + idx + ', \'rate\', this.value)" class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-right text-amber-300" />' +
+          '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-200">' + fmtKRW(l.monthly) + '</td>' +
+          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtKRW(l.monthly * 12) + '</td>' +
+          '<td class="py-2.5 px-3 text-center">' +
+            '<button type="button" onclick="window.deleteLoanRow(' + idx + ')" class="bg-rose-600/80 hover:bg-rose-600 text-white px-2 py-1 rounded text-[11px] cursor-pointer">삭제</button>' +
           '</td>';
         tbody.appendChild(tr);
       });
     };
 
-    window.renderLoansAndRealized = function() {
-      const lBody = document.getElementById('loansTableBody');
-      lBody.innerHTML = '';
-      state.loans.forEach(l => {
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td class="py-2.5 px-3 font-medium text-white">' + l.lender + '</td>' +
-          '<td class="py-2.5 px-3 text-right">' + fmtKRW(l.principal) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-amber-400">' + (l.rate * 100).toFixed(2) + '%</td>' +
-          '<td class="py-2.5 px-3 text-right">' + fmtKRW(l.monthly) + '</td>' +
-          '<td class="py-2.5 px-3 text-right text-slate-300">' + fmtKRW(l.monthly * 12) + '</td>';
-        lBody.appendChild(tr);
-      });
-
-      const rBody = document.getElementById('realizedTableBody');
-      rBody.innerHTML = '';
+    window.renderRealizedTable = function() {
+      const tbody = document.getElementById('realizedTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      let sumRealized = 0;
       state.realizedPnl.forEach(r => {
+        sumRealized += r.totalPnl;
         const col = r.totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
         const tr = document.createElement('tr');
         tr.innerHTML =
           '<td class="py-2.5 px-3 font-medium text-white">' + r.account + '</td>' +
           '<td class="py-2.5 px-3 text-slate-400">' + r.period + '</td>' +
-          '<td class="py-2.5 px-3 text-right ' + col + '">' + (r.tradePnl >= 0 ? '+' : '') + fmtKRW(r.tradePnl) + '</td>' +
           '<td class="py-2.5 px-3 text-right font-semibold ' + col + '">' + (r.totalPnl >= 0 ? '+' : '') + fmtKRW(r.totalPnl) + '</td>' +
-          '<td class="py-2.5 px-3 text-slate-400">' + r.note + '</td>';
-        rBody.appendChild(tr);
+          '<td class="py-2.5 px-3 text-slate-300 text-[11px]">' + r.note + '</td>';
+        tbody.appendChild(tr);
       });
     };
 
-    window.renderCharts = function(netWorth, totalDebt) {
-      if (typeof Chart === 'undefined') return;
-
-      const capCtx = document.getElementById('capitalChart').getContext('2d');
-      if (charts.capital) charts.capital.destroy();
-      charts.capital = new Chart(capCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['순자산 (자기자본)', '대출 부채 (타인자본)'],
-          datasets: [{ data: [Math.max(0, netWorth), totalDebt], backgroundColor: ['#38bdf8', '#f59e0b'], borderWidth: 0 }]
-        },
-        options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } }, maintainAspectRatio: false }
-      });
-
-      const catSums = { '국내주식': 0, '미국주식': 0, 'ETF': 0 };
-      state.holdings.forEach(h => { catSums[h.category] = (catSums[h.category] || 0) + h.totalEval; });
-      const catCtx = document.getElementById('categoryChart').getContext('2d');
-      if (charts.category) charts.category.destroy();
-      charts.category = new Chart(catCtx, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(catSums),
-          datasets: [{ data: Object.values(catSums), backgroundColor: ['#6366f1', '#10b981', '#ec4899'], borderWidth: 0 }]
-        },
-        options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } }, maintainAspectRatio: false }
-      });
-
-      const top5 = [...state.holdings].sort((a, b) => b.totalEval - a.totalEval).slice(0, 5);
-      const top5Ctx = document.getElementById('top5Chart').getContext('2d');
-      if (charts.top5) charts.top5.destroy();
-      charts.top5 = new Chart(top5Ctx, {
-        type: 'bar',
-        data: {
-          labels: top5.map(x => x.name.split(' ')[0]),
-          datasets: [{ label: '평가금액(원)', data: top5.map(x => Math.round(x.totalEval)), backgroundColor: '#3b82f6', borderRadius: 6 }]
-        },
-        options: {
-          indexAxis: 'y',
-          plugins: { legend: { display: false } },
-          scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#e2e8f0' }, grid: { display: false } } },
-          maintainAspectRatio: false
-        }
-      });
-
-      const dCtx = document.getElementById('dailyAssetChart').getContext('2d');
-      if (charts.daily) charts.daily.destroy();
-      charts.daily = new Chart(dCtx, {
-        type: 'line',
-        data: {
-          labels: state.dailyTrend.map(d => d.date.slice(5)),
-          datasets: [{
-            label: '총 운용자산 (원)',
-            data: state.dailyTrend.map(d => d.totalAsset),
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            fill: true,
-            tension: 0.25,
-            pointRadius: 3
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
-          maintainAspectRatio: false
-        }
-      });
-
-      const nCtx = document.getElementById('nvdaInteractiveChart').getContext('2d');
-      if (charts.nvda) charts.nvda.destroy();
-      charts.nvda = new Chart(nCtx, {
-        type: 'line',
-        data: {
-          labels: state.nvdaHistory.map(d => d.date),
-          datasets: [{
-            label: 'NVDA 종가 ($)',
-            data: state.nvdaHistory.map(d => d.close),
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.12)',
-            fill: true,
-            tension: 0.2
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
-          maintainAspectRatio: false
-        }
-      });
-    };
-
-    window.syncNow = async function() {
+    window.syncToServer = async function() {
       const apiUrl = localStorage.getItem('asset_pwa_api_url');
       const badge = document.getElementById('syncBadge');
-      if (!apiUrl) {
-        badge.textContent = '로컬 스냅샷 모드 (URL 미설정)';
-        document.getElementById('lastUpdatedText').textContent = new Date().toLocaleString('ko-KR') + ' (로컬)';
-        window.recalculateAndRender();
-        return;
-      }
+      if (!apiUrl) return;
       try {
-        badge.textContent = '동기화 중...';
-        const res = await fetch(apiUrl, { cache: 'no-store' });
+        badge.textContent = '구글시트 동기화 중...';
+        await fetch(apiUrl, { method: 'POST', body: JSON.stringify({ holdings: state.holdings }) });
+        badge.textContent = '양방향 실시간 동기화 완료';
+        badge.className = 'text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      } catch (err) {
+        badge.textContent = '동기화 오류';
+      }
+    };
+
+    window.fetchFromServer = async function() {
+      const apiUrl = localStorage.getItem('asset_pwa_api_url');
+      const badge = document.getElementById('syncBadge');
+      if (!apiUrl) return;
+      try {
+        badge.textContent = '데이터 불러오는 중...';
+        const res = await fetch(apiUrl + (apiUrl.indexOf('?')===-1?'?':'&') + '_t=' + Date.now(), { cache: 'no-store' });
         const json = await res.json();
         if (json.holdings && json.holdings.length > 0) {
-          state.holdings = json.holdings.map((h, i) => Object.assign({}, INITIAL_STATE.holdings[i] || {}, h));
+          state.holdings = json.holdings.map((h, i) => {
+            const fallback = INITIAL_STATE.holdings.find(x => x.name === h.name) || INITIAL_STATE.holdings[i] || {};
+            return Object.assign({}, fallback, h);
+          });
         }
-        if (json.dailyTrend && json.dailyTrend.length > 0) {
-          state.dailyTrend = json.dailyTrend;
+        if (json.realizedPnl && json.realizedPnl.length > 0) {
+          state.realizedPnl = json.realizedPnl;
         }
         document.getElementById('lastUpdatedText').textContent = json.updatedAt || new Date().toLocaleString('ko-KR');
         badge.textContent = '실시간 연동 완료';
+        badge.className = 'text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
         window.recalculateAndRender();
       } catch (err) {
-        badge.textContent = '연동 오류 (URL/권한 확인)';
-        console.warn('Sync error:', err);
+        badge.textContent = '연동 오류';
       }
     };
 
     window.saveSyncSettings = function() {
       const url = document.getElementById('apiUrlInput').value.trim();
-      const sec = parseInt(document.getElementById('pollIntervalInput').value, 10);
       localStorage.setItem('asset_pwa_api_url', url);
-      localStorage.setItem('asset_pwa_poll_sec', String(sec));
-      if (pollTimer) clearInterval(pollTimer);
-      if (url && sec > 0) pollTimer = setInterval(window.syncNow, sec * 1000);
       window.closeConfigModal();
-      window.syncNow();
-    };
-
-    window.resetDefaultData = function() {
-      localStorage.removeItem('asset_pwa_state_v2');
-      state = JSON.parse(JSON.stringify(INITIAL_STATE));
-      window.recalculateAndRender();
-      window.closeConfigModal();
-    };
-
-    window.saveChecklist = function() {
-      const checks = ['chk1', 'chk2', 'chk3', 'chk4'].map(id => document.getElementById(id).checked);
-      localStorage.setItem('asset_pwa_checks', JSON.stringify(checks));
-    };
-
-    window.loadChecklist = function() {
-      const checks = JSON.parse(localStorage.getItem('asset_pwa_checks') || '[false,false,false,false]');
-      ['chk1', 'chk2', 'chk3', 'chk4'].forEach((id, i) => {
-        if (document.getElementById(id)) document.getElementById(id).checked = !!checks[i];
-      });
+      window.fetchFromServer();
     };
 
     window.addEventListener('DOMContentLoaded', () => {
-      window.loadChecklist();
       window.recalculateAndRender();
       const savedUrl = localStorage.getItem('asset_pwa_api_url');
-      const savedSec = parseInt(localStorage.getItem('asset_pwa_poll_sec') || '60', 10);
-      if (savedUrl) {
-        window.syncNow();
-        if (savedSec > 0) pollTimer = setInterval(window.syncNow, savedSec * 1000);
-      }
+      if (savedUrl) window.fetchFromServer();
     });
   </script>
 </head>
 <body class="min-h-screen pb-20">
+  <!-- 상단 고정 헤더 (모바일/PC 반응형) -->
   <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-3">
-        <img src="./icon-192.png" onerror="this.style.display='none'" alt="아이콘" class="w-9 h-9 rounded-lg border border-slate-700" />
-        <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            총 자산 현황 실시간 대시보드
-            <span id="syncBadge" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">실시간 준비됨</span>
-          </h1>
-          <p class="text-xs text-slate-400">최종 동기화: <span id="lastUpdatedText">2026-10-15 07:00:00 (기본 스냅샷)</span></p>
-        </div>
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-2">
+          투자 포트폴리오 & 레버리지 자산 대시보드
+          <span id="syncBadge" class="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">실시간 연동 대기</span>
+        </h1>
+        <p class="text-[11px] text-slate-400">최종 동기화: <span id="lastUpdatedText">-</span></p>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="btnSyncNow" type="button" onclick="window.syncNow()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
-          지금 새로고침
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button type="button" onclick="window.fetchFromServer()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+          새로고침
         </button>
-        <button id="btnOpenConfig" type="button" onclick="window.openConfigModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
+        <button type="button" onclick="window.openConfigModal()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition cursor-pointer">
           실시간 연동 설정
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 pt-5 space-y-6">
-    <section class="grid grid-cols-2 lg:grid-cols-6 gap-3">
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">총 운용자산 (평가금액)</div>
-        <div id="kpiTotalAsset" class="text-lg sm:text-xl font-bold text-white mt-1">₩180,774,576</div>
-        <div id="kpiDailyDiff" class="text-xs text-emerald-400 mt-1">전일비 +₩324,576 (+0.18%)</div>
-      </div>
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">순자산 (자기자본)</div>
-        <div id="kpiNetWorth" class="text-lg sm:text-xl font-bold text-sky-400 mt-1">₩68,524,576</div>
-        <div id="kpiEquityRatio" class="text-xs text-slate-300 mt-1">자기자본 비중 37.9% (권장 30%↑)</div>
-      </div>
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">총 대출 부채 (타인자본)</div>
-        <div id="kpiTotalDebt" class="text-lg sm:text-xl font-bold text-amber-400 mt-1">₩112,250,000</div>
-        <div id="kpiInterestInfo" class="text-xs text-slate-300 mt-1">월 ₩443,513 / 연 ₩5,322,150</div>
-      </div>
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">레버리지 (부채비율)</div>
-        <div id="kpiLeverage" class="text-lg sm:text-xl font-bold text-purple-400 mt-1">163.81%</div>
-        <div class="text-xs text-slate-300 mt-1">순자산 대비 연이자 부담 7.8%</div>
-      </div>
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">미실현 평가손익</div>
-        <div id="kpiUnrealizedPnl" class="text-lg sm:text-xl font-bold text-rose-400 mt-1">-₩51,125,496</div>
-        <div id="kpiUnrealizedRate" class="text-xs text-rose-300 mt-1">원금 ₩231,899,970 대비 -22.05%</div>
-      </div>
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">총 누적 손익 (실현+미실현)</div>
-        <div id="kpiNetCumulativePnl" class="text-lg sm:text-xl font-bold text-rose-400 mt-1">-₩992,630</div>
-        <div class="text-xs text-emerald-400 mt-1">누적 실현수익 +₩50,132,866 반영</div>
-      </div>
-    </section>
-
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 pt-4 space-y-5">
+    <!-- 탭 네비게이션 -->
     <nav class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
-      <button type="button" onclick="window.switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종합 대시보드 & 전략</button>
-      <button type="button" onclick="window.switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">보유종목 상세 (12종목)</button>
-      <button type="button" onclick="window.switchTab('tab-daily')" id="btn-tab-daily" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">일별 자산추이 & 스냅샷</button>
-      <button type="button" onclick="window.switchTab('tab-chart')" id="btn-tab-chart" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종목 주가 & 52주 분석</button>
-      <button type="button" onclick="window.switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">대출 관리 & 실현손익 기록부</button>
+      <button type="button" onclick="window.switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn active text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종합 대시보드</button>
+      <button type="button" onclick="window.switchTab('tab-holdings')" id="btn-tab-holdings" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">종목별 상세 & 수량·단가 수정</button>
+      <button type="button" onclick="window.switchTab('tab-loans-pnl')" id="btn-tab-loans-pnl" class="tab-btn text-xs sm:text-sm px-4 py-2 rounded-lg bg-slate-800 text-slate-300 transition cursor-pointer">대출 관리 & 실현손익</button>
     </nav>
 
-    <section id="tab-dashboard" class="space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="card p-4">
-          <h2 class="text-sm font-semibold text-slate-200 mb-3">자본 조달 구조 (순자산 vs 타인자본)</h2>
-          <div class="h-56 flex items-center justify-center"><canvas id="capitalChart"></canvas></div>
-        </div>
-        <div class="card p-4">
-          <h2 class="text-sm font-semibold text-slate-200 mb-3">자산군별 포트폴리오 비중</h2>
-          <div class="h-56 flex items-center justify-center"><canvas id="categoryChart"></canvas></div>
-        </div>
-        <div class="card p-4">
-          <h2 class="text-sm font-semibold text-slate-200 mb-3">상위 5대 보유종목 평가금액 (원)</h2>
-          <div class="h-56 flex items-center justify-center"><canvas id="top5Chart"></canvas></div>
-        </div>
+    <!-- [탭 1] 종합 대시보드 (카드 순서 조정 기능 포함) -->
+    <section id="tab-dashboard" class="space-y-4">
+      <div class="card p-3 bg-slate-800/60 flex items-center justify-between text-xs text-slate-300">
+        <span>💡 각 카드의 <b>[▲] [▼] 버튼</b>을 누르면 대시보드 배치가 실시간으로 조정되고 즉시 저장됩니다.</span>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card p-5 space-y-3">
-          <h3 class="text-sm font-bold text-white">리스크 집중도 모니터링</h3>
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <div class="text-slate-400">1위 보유종목 집중도</div>
-              <div class="text-base font-bold text-white mt-1">23.5% (삼성전자)</div>
-              <div class="text-slate-400 mt-0.5">삼전+하이닉스 합산 46.5% (₩8,406만)</div>
-            </div>
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <div class="text-slate-400">레버리지 상품 노출 비중</div>
-              <div class="text-base font-bold text-amber-400 mt-1">26.2% (4종목)</div>
-              <div class="text-slate-400 mt-0.5">합산 평가액 ₩4,744만 (음의 복리 유의)</div>
-            </div>
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <div class="text-slate-400">순자산 대비 연이자 부담률</div>
-              <div class="text-base font-bold text-rose-400 mt-1">7.8% (연 ₩532만)</div>
-              <div class="text-slate-400 mt-0.5">월 고정 지출 ₩443,513</div>
-            </div>
-            <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
-              <div class="text-slate-400">자기자본 안전마진</div>
-              <div class="text-base font-bold text-emerald-400 mt-1">37.9% 달성</div>
-              <div class="text-slate-400 mt-0.5">권장 가이드 30.0% 초과 유지 중</div>
-            </div>
+      <div id="kpiContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- 1. 총 평가금액 -->
+        <div id="card-total-eval" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-total-eval', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-total-eval', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
           </div>
-          <div class="p-3 rounded-lg bg-blue-950/40 border border-blue-800/50 text-xs text-blue-200">
-            "현재 부채비율 163.8% 환경에서는 자산 증식보다 현금흐름과 이자 방어가 장기 수익률을 결정합니다."
-          </div>
+          <div class="text-xs text-slate-400">1. 총 평가금액 (Total Eval)</div>
+          <div id="kpiTotalAsset" class="text-lg sm:text-xl font-bold text-white mt-1">₩0</div>
+          <div id="kpiTotalBuySub" class="text-xs text-slate-400 mt-1">총 투자 원금</div>
         </div>
 
-        <div class="card p-5 space-y-3">
-          <h3 class="text-sm font-bold text-white">핵심 전략 가이드 및 리밸런싱 체크리스트</h3>
-          <div class="space-y-2 text-xs">
-            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk1" />
-              <div>
-                <span class="font-semibold text-amber-300">[우선순위 1] 최고금리 차입금 상환</span>
-                <p class="text-slate-300 mt-0.5">카카오뱅크(연 6.60%, 잔액 3,000만원) 우선 상환 시 월 이자 164,950원 즉시 절감</p>
-              </div>
-            </label>
-            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk2" />
-              <div>
-                <span class="font-semibold text-sky-300">[우선순위 2] 국내 반도체 집중도 완화</span>
-                <p class="text-slate-300 mt-0.5">삼성전자·SK하이닉스 평가액 8,406만원(전체의 46.5%) 과밀집 구간 분할 리밸런싱</p>
-              </div>
-            </label>
-            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk3" />
-              <div>
-                <span class="font-semibold text-purple-300">[우선순위 3] 레버리지 ETF 변동성 통제</span>
-                <p class="text-slate-300 mt-0.5">레버리지 4종목(총 4,744만원, 비중 26.2%)의 음의 복리 리스크 방어 가이드라인 수립</p>
-              </div>
-            </label>
-            <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-slate-800/60 cursor-pointer">
-              <input type="checkbox" class="mt-0.5 accent-blue-500" onchange="window.saveChecklist()" id="chk4" />
-              <div>
-                <span class="font-semibold text-emerald-300">[우선순위 4] 누적 실현이익 버퍼 확보</span>
-                <p class="text-slate-300 mt-0.5">누적 실현수익 5,013만원 중 연간 이자 지출(532만원) 1~2년치 예비비 별도 분리</p>
-              </div>
-            </label>
+        <!-- 총 실현손익 카드 -->
+        <div id="card-realized" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-realized', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-realized', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
           </div>
+          <div class="text-xs text-slate-400">총 실현손익 (Realized PnL)</div>
+          <div id="kpiRealizedPnl" class="text-lg sm:text-xl font-bold text-emerald-400 mt-1">+₩0</div>
+          <div class="text-xs text-slate-400 mt-1">세부 계좌별 확정 이익 합산</div>
+        </div>
+
+        <!-- 3. 총 일간 수익 -->
+        <div id="card-daily" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-daily', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-daily', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
+          </div>
+          <div class="text-xs text-slate-400">3. 총 일간 수익 (수익률)</div>
+          <div id="kpiDailyPnl" class="text-lg sm:text-xl font-bold text-emerald-400 mt-1">+₩0 (+0.00%)</div>
+          <div class="text-xs text-slate-400 mt-1">전일 대비 일일 변동액</div>
+        </div>
+
+        <!-- 4. 총 주간 수익 -->
+        <div id="card-weekly" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-weekly', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-weekly', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
+          </div>
+          <div class="text-xs text-slate-400">4. 총 주간 수익 (수익률)</div>
+          <div id="kpiWeeklyPnl" class="text-lg sm:text-xl font-bold text-emerald-400 mt-1">+₩0 (+0.00%)</div>
+          <div class="text-xs text-slate-400 mt-1">최근 5거래일 주간 변동</div>
+        </div>
+
+        <!-- 5. 대출부채 현황 -->
+        <div id="card-debt" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-debt', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-debt', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
+          </div>
+          <div class="text-xs text-slate-400">5. 대출부채 현황 (타인자본)</div>
+          <div id="kpiTotalDebt" class="text-lg sm:text-xl font-bold text-amber-400 mt-1">₩0</div>
+          <div id="kpiInterestInfo" class="text-xs text-slate-300 mt-1">월 이자 및 부채비율</div>
+        </div>
+
+        <!-- 6. 미실현 평가손익 -->
+        <div id="card-unrealized" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-unrealized', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-unrealized', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
+          </div>
+          <div class="text-xs text-slate-400">6. 미실현 평가손익</div>
+          <div id="kpiUnrealizedPnl" class="text-lg sm:text-xl font-bold text-rose-400 mt-1">₩0</div>
+          <div id="kpiUnrealizedRate" class="text-xs text-slate-300 mt-1">원금 대비 평가손익</div>
+        </div>
+
+        <!-- 7. 순 자산 -->
+        <div id="card-networth" class="card p-4 relative group">
+          <div class="absolute top-2 right-2 flex gap-1 opacity-60 group-hover:opacity-100">
+            <button type="button" onclick="window.moveCard('card-networth', -1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▲</button>
+            <button type="button" onclick="window.moveCard('card-networth', 1)" class="bg-slate-700 hover:bg-slate-600 text-white px-1.5 py-0.5 rounded text-[10px]">▼</button>
+          </div>
+          <div class="text-xs text-slate-400">7. 순 자산 (Net Worth)</div>
+          <div id="kpiNetWorth" class="text-lg sm:text-xl font-bold text-sky-400 mt-1">₩0</div>
+          <div id="kpiEquityRatio" class="text-xs text-slate-300 mt-1">자기자본 비중</div>
         </div>
       </div>
     </section>
 
+    <!-- [탭 2] 종목별 상세 & 수량·단가 수정 (8 & 9번 요구사항) -->
     <section id="tab-holdings" class="hidden space-y-4">
-      <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs text-slate-400">계좌/자산군 필터:</span>
-          <select id="filterAccount" onchange="window.renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
-            <option value="ALL">전체 계좌 (계좌 1·2·3)</option>
-            <option value="계좌 1">계좌 1 (국내주식)</option>
-            <option value="계좌 2">계좌 2 (미국주식)</option>
-            <option value="계좌 3">계좌 3 (ETF)</option>
-          </select>
-          <select id="filterCategory" onchange="window.renderHoldings()" class="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white">
-            <option value="ALL">전체 자산군</option>
-            <option value="국내주식">국내주식 (4)</option>
-            <option value="미국주식">미국주식 (6)</option>
-            <option value="ETF">ETF (2)</option>
-          </select>
-        </div>
-        <div class="text-xs text-slate-400">현재가 셀을 직접 수정하면 전체 KPI와 평가손익이 즉시 재계산됩니다.</div>
+      <div class="card p-3 bg-slate-800/80 text-xs text-slate-300">
+        ✨ 표 안의 <span class="text-sky-300 font-bold">수량, 매입단가, 현재가</span> 칸을 수정하면 대시보드와 구글 스프레드시트에 양방향 실시간 반영됩니다.
       </div>
-
       <div class="card overflow-x-auto">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
+        <table class="w-full text-xs text-left whitespace-nowrap">
+          <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
             <tr>
               <th class="py-3 px-3">계좌</th>
-              <th class="py-3 px-3">종목명 (티커)</th>
-              <th class="py-3 px-3">자산군</th>
-              <th class="py-3 px-3 text-right">보유수량</th>
-              <th class="py-3 px-3 text-right">매입단가(원)</th>
-              <th class="py-3 px-3 text-right">현재단가(원)</th>
+              <th class="py-3 px-3">종목명</th>
+              <th class="py-3 px-3 text-right">수량 (수정)</th>
+              <th class="py-3 px-3 text-right">내 평단가 (수정)</th>
+              <th class="py-3 px-3 text-right">현재시세 (수정)</th>
               <th class="py-3 px-3 text-right">총 매입원금</th>
               <th class="py-3 px-3 text-right">총 평가금액</th>
-              <th class="py-3 px-3 text-right">평가손익</th>
-              <th class="py-3 px-3 text-right">수익률</th>
-              <th class="py-3 px-3">투자 메모</th>
+              <th class="py-3 px-3 text-right">일간 수익</th>
+              <th class="py-3 px-3 text-right">총 수익 (수익률)</th>
+              <th class="py-3 px-3">메모</th>
             </tr>
           </thead>
           <tbody id="holdingsTableBody" class="divide-y divide-slate-800"></tbody>
@@ -636,108 +463,49 @@
       </div>
     </section>
 
-    <section id="tab-daily" class="hidden space-y-4">
-      <div class="card p-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div>
-            <h2 class="text-sm font-bold text-white">일별 총 운용자산 추이 (매일 07:00 스냅샷)</h2>
-            <p class="text-xs text-slate-400">최고 ₩180,774,576 / 최저 ₩176,200,000 (누적 15일 기록)</p>
-          </div>
-          <button type="button" onclick="window.addTodaySnapshot()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium cursor-pointer">+ 현재 평가액으로 오늘 스냅샷 추가</button>
+    <!-- [탭 3] 대출 관리 & 실현손익 (5번 요구사항 및 실현손익 추가) -->
+    <section id="tab-loans-pnl" class="hidden space-y-6">
+      <!-- 대출 관리 (추가, 삭제, 이자율 수정 가능) -->
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white">5. 대출부채 현황 관리 (이자율 수정, 대출 추가/삭제)</h2>
+          <button type="button" onclick="window.addLoanRow()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium cursor-pointer">+ 대출 항목 추가</button>
         </div>
-        <div class="h-64"><canvas id="dailyAssetChart"></canvas></div>
-      </div>
-
-      <div class="card overflow-x-auto">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
-            <tr>
-              <th class="py-2.5 px-3">일자</th>
-              <th class="py-2.5 px-3">기준시각</th>
-              <th class="py-2.5 px-3 text-right">총 운용자산 (원)</th>
-              <th class="py-2.5 px-3 text-right">전일 대비 변동액</th>
-              <th class="py-2.5 px-3 text-right">변동률</th>
-              <th class="py-2.5 px-3">비고 및 메모</th>
-            </tr>
-          </thead>
-          <tbody id="dailyTableBody" class="divide-y divide-slate-800"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="tab-chart" class="hidden space-y-4">
-      <div class="card p-4 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 class="text-sm font-bold text-white">엔비디아 (NASDAQ:NVDA) 1년 일별 주가 인터랙티브 차트 (USD)</h2>
-            <p class="text-xs text-slate-400">2025-10-15 ~ 2026-10-14 (기간 등락률 +23.06% | 52주 범위 $164.27 ~ $243.37 | 보유 59주 수익률 +1,643.3%)</p>
-          </div>
-        </div>
-        <div class="h-64"><canvas id="nvdaInteractiveChart"></canvas></div>
-      </div>
-
-      <div class="card p-4">
-        <h3 class="text-sm font-bold text-white mb-3">12개 보유종목 52주 가격 위치 (최저가 대비 최고가 백분율)</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700">
+            <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
               <tr>
-                <th class="py-2.5 px-3">종목명</th>
-                <th class="py-2.5 px-3">티커/코드</th>
-                <th class="py-2.5 px-3 text-right">현재 평가단가(원)</th>
-                <th class="py-2.5 px-3 text-right">52주 최저가</th>
-                <th class="py-2.5 px-3 text-right">52주 최고가</th>
-                <th class="py-2.5 px-3 w-56">52주 가격 위치</th>
+                <th class="py-2.5 px-3">차입처</th>
+                <th class="py-2.5 px-3 text-right">대출 원금 (원)</th>
+                <th class="py-2.5 px-3 text-right">연 이자율 (수정)</th>
+                <th class="py-2.5 px-3 text-right">월 예상 이자</th>
+                <th class="py-2.5 px-3 text-right">연간 이자</th>
+                <th class="py-2.5 px-3 text-center">관리</th>
               </tr>
             </thead>
-            <tbody id="range52TableBody" class="divide-y divide-slate-800"></tbody>
+            <tbody id="loansTableBody" class="divide-y divide-slate-800"></tbody>
           </table>
         </div>
       </div>
-    </section>
 
-    <section id="tab-loans-pnl" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card p-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-white">대출 기관별 차입금 & 이자 현황</h2>
-            <span class="text-xs text-amber-400">총 원금 ₩112,250,000 / 월 이자 ₩443,513</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
-                <tr>
-                  <th class="py-2.5 px-3">차입처</th>
-                  <th class="py-2.5 px-3 text-right">대출 원금(원)</th>
-                  <th class="py-2.5 px-3 text-right">연 이자율</th>
-                  <th class="py-2.5 px-3 text-right">월 예상 이자</th>
-                  <th class="py-2.5 px-3 text-right">연간 이자</th>
-                </tr>
-              </thead>
-              <tbody id="loansTableBody" class="divide-y divide-slate-800"></tbody>
-            </table>
-          </div>
+      <!-- 세부 계좌별 실현손익 기록부 -->
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white">세부 계좌별 실현손익 및 총 실현손익</h2>
+          <span class="text-xs text-emerald-400">구글 시트 '실현손익_기록부' 연동</span>
         </div>
-
-        <div class="card p-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-white">증권사별 누적 실현손익 기록부</h2>
-            <span class="text-xs text-emerald-400">총 실현수익 +₩50,132,866 (배당·이자 포함)</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
-                <tr>
-                  <th class="py-2.5 px-3">증권사 / 계좌</th>
-                  <th class="py-2.5 px-3">조회 기간</th>
-                  <th class="py-2.5 px-3 text-right">주식 매매손익</th>
-                  <th class="py-2.5 px-3 text-right">총 실현수익</th>
-                  <th class="py-2.5 px-3">비고</th>
-                </tr>
-              </thead>
-              <tbody id="realizedTableBody" class="divide-y divide-slate-800"></tbody>
-            </table>
-          </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-800 text-slate-300 border-b border-slate-700">
+              <tr>
+                <th class="py-2.5 px-3">증권사 및 운용 계좌</th>
+                <th class="py-2.5 px-3">조회 기간</th>
+                <th class="py-2.5 px-3 text-right">확정 실현손익 (원)</th>
+                <th class="py-2.5 px-3">비고 및 세부내역</th>
+              </tr>
+            </thead>
+            <tbody id="realizedTableBody" class="divide-y divide-slate-800"></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -747,30 +515,21 @@
   <div id="configModal" style="display: none;" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm items-center justify-center p-4">
     <div class="card max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-600">
       <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-        <h3 class="text-base font-bold text-white">구글 스프레드시트 실시간 연동 설정</h3>
+        <h3 class="text-base font-bold text-white">구글 스프레드시트 양방향 실시간 연동 설정</h3>
         <button type="button" onclick="window.closeConfigModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 cursor-pointer">닫기 ✕</button>
       </div>
       <div class="space-y-3 text-xs text-slate-300">
         <p class="leading-relaxed">
-          구글 스프레드시트 상단 메뉴 <b>[확장 프로그램] &gt; [Apps Script]</b>에 <code>google_apps_script.js</code> 코드를 붙여넣고 <b>[배포] &gt; [새 배포] &gt; [웹 앱]</b>(액세스 권한: 모든 사용자)으로 배포한 뒤 생성된 URL을 아래에 입력해 주세요.
+          구글 스프레드시트 <b>[확장 프로그램] &gt; [Apps Script]</b>에 제공된 코드를 넣고 <b>[배포] &gt; [웹 앱]</b>(액세스 권한: 모든 사용자)으로 배포한 웹 앱 URL을 입력해 주세요[cite: 7, 16].
         </p>
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Google Apps Script 웹 앱 URL</label>
           <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 outline-none" />
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1 font-medium">자동 갱신 주기 (초)</label>
-          <select id="pollIntervalInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
-            <option value="30">30초마다 실시간 동기화</option>
-            <option value="60" selected>60초(1분)마다 실시간 동기화</option>
-            <option value="300">5분마다 동기화</option>
-            <option value="0">수동 새로고침만 사용</option>
-          </select>
-        </div>
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="window.resetDefaultData()" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">기본 스냅샷 복원</button>
-        <button type="button" onclick="window.saveSyncSettings()" class="text-xs px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold cursor-pointer">저장 및 즉시 연동</button>
+        <button type="button" onclick="window.closeConfigModal()" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">취소</button>
+        <button type="button" onclick="window.saveSyncSettings()" class="text-xs px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold cursor-pointer">저장 및 연동 시작</button>
       </div>
     </div>
   </div>
