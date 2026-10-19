@@ -48,6 +48,7 @@
     };
 
     let state = JSON.parse(localStorage.getItem('asset_pwa_state_v5') || 'null') || JSON.parse(JSON.stringify(INITIAL_STATE));
+    let apiUrl = "https://script.google.com/macros/s/AKfycbyBo64ChBmY18ZqM6WDVDmT-xOE3ZiCJR_CoEmF1KhAXcCmmCbElrK-7cZqNhuN03Q6/exec";
     if (!state.cardOrder) state.cardOrder = INITIAL_STATE.cardOrder;
 
     const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
