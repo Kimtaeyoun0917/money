@@ -51,13 +51,20 @@
     let apiUrl = "https://script.google.com/macros/s/AKfycbyBo64ChBmY18ZqM6WDVDmT-xOE3ZiCJR_CoEmF1KhAXcCmmCbElrK-7cZqNhuN03Q6/exec";
     if (!state.cardOrder) state.cardOrder = INITIAL_STATE.cardOrder;
 
+    // 실시간 연동 URL: 설정에서 저장한 값이 있으면 그 값을, 없으면 코드에 내장된 기본 URL을 사용한다.
+    // (새 브라우저/시크릿 창처럼 localStorage가 비어 있는 환경에서도 시트 동기화가 되도록 하는 폴백)
+    window.getApiUrl = function() {
+      const saved = (localStorage.getItem('asset_pwa_api_url') || '').trim();
+      return saved || apiUrl;
+    };
+
     const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
     const fmtNum = (n) => Math.round(Number(n) || 0).toLocaleString('ko-KR');
 
     window.openConfigModal = function() {
       const modal = document.getElementById('configModal');
       if (modal) modal.style.display = 'flex';
-      document.getElementById('apiUrlInput').value = localStorage.getItem('asset_pwa_api_url') || '';
+      document.getElementById('apiUrlInput').value = window.getApiUrl();
     };
 
     window.closeConfigModal = function() {
@@ -268,7 +275,7 @@
     };
 
     window.syncToServer = async function() {
-      const apiUrl = localStorage.getItem('asset_pwa_api_url');
+      const apiUrl = window.getApiUrl();
       const badge = document.getElementById('syncBadge');
       if (!apiUrl) return;
       try {
@@ -282,7 +289,7 @@
     };
 
     window.fetchFromServer = async function() {
-      const apiUrl = localStorage.getItem('asset_pwa_api_url');
+      const apiUrl = window.getApiUrl();
       const badge = document.getElementById('syncBadge');
       if (!apiUrl) return;
       try {
@@ -309,15 +316,19 @@
 
     window.saveSyncSettings = function() {
       const url = document.getElementById('apiUrlInput').value.trim();
-      localStorage.setItem('asset_pwa_api_url', url);
+      if (url && url !== apiUrl) {
+        localStorage.setItem('asset_pwa_api_url', url);
+      } else {
+        // 비웠거나 기본 URL과 같으면 저장값을 지워 기본 URL을 그대로 쓰게 한다.
+        localStorage.removeItem('asset_pwa_api_url');
+      }
       window.closeConfigModal();
       window.fetchFromServer();
     };
 
     window.addEventListener('DOMContentLoaded', () => {
       window.recalculateAndRender();
-      const savedUrl = localStorage.getItem('asset_pwa_api_url');
-      if (savedUrl) window.fetchFromServer();
+      window.fetchFromServer();
     });
   </script>
 </head>
